@@ -1,0 +1,120 @@
+
+.container {
+	display: flex;
+	.nav-left {
+		width: 264px;
+		height: calc(100vh);
+		background-color: #393D49;
+		overflow: auto;
+		transition: width .2s linear;
+		position: relative;
+		&.width0 {
+			width: 0;
+		}
+		.version{
+			text-align: center;
+			color: #999;
+			position: absolute;
+			bottom: 0;
+			left: 50%;
+			width: 50%;
+			margin-left: -25%;
+			font-size: 12px;
+		}
+	}
+	.main {
+		flex: 1;
+		height: calc(100vh);
+		background-color: #f5f5f5;
+		overflow: scroll;
+		/*滚动条样式*/
+		-webkit-overflow-scrolling: touch;
+		/*滚动条样式*/
+		&::-webkit-scrollbar {
+			width: 3px;
+			display: none;
+		}
+		&::-webkit-scrollbar-thumb {
+			border-radius: 1.5px;
+			-webkit-box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
+			background: #F79F17;
+		}
+		&::-webkit-scrollbar-track {
+			border-radius: 1.5px;
+			-webkit-box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
+			background: #EDEDED;
+		}
+		//&:hover{
+		//	&::-webkit-scrollbar {
+		//		display: block;
+		//	}
+		//}
+		.content {
+			position: relative;
+			overflow: auto;
+		}
+	}
+}
+
+.theme-color{
+	color: #F79F17;
+}
+
+.container-15{
+	padding: 0 15px;
+	position: relative;
+}
+
+.shadow{
+	-webkit-box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+	box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+	-webkit-transform: translate3d(0, -2px, 0);
+}
+.shadow-item{
+	transition: all .2s ease-in-out;
+	-webkit-box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+	box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+	-webkit-transform: translate3d(0, 0, 0);
+	will-change: auto;
+	background-color: #fff;
+	border-radius: 6px;
+	&:hover{
+		-webkit-box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+		box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+		-webkit-transform: translate3d(0, -2px, 0);
+	}
+	&.mr{
+		margin: 20px;
+	}
+	&.pa{
+		padding: 20px;
+	}
+}
+
+.rmr{
+	margin: 20px;
+}
+.rpa{
+	padding: 20px;
+}
+
+.flex-perfect{
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-between;
+	&:after{
+		content: '';
+		flex: auto;
+	}
+}
+
+.ant-menu-dark, .ant-menu-dark .ant-menu-sub{
+	background: #393D49 !important;
+	/*background-color: #393D49;
+	color: #c2c2c2;*/
+}
+
+.ant-menu-dark .ant-menu-inline.ant-menu-sub {
+	background: #2d303a !important;
+}
+

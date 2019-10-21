@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<!--
+            !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            !|||||||||||||||||||||||||||||||||||||||||||||||!!
+            !|||||||||||||||||||||||||||||||!!!|||||||||||||!!
+            !||||||||||||||||||||||||||||||!;!||||||||||||||!!
+            !|||||||||||||||||||||||||||||;':|||||||||||||||!!
+            !||||||||||||||||||||||||||||;.`!|||||||||||||||!!
+            !|||||||||||||||||||||||||||:  '||||||||||||||||!!
+            !||!;!|||||||||||||||||||||'   '||||||||||||||||!!
+            !|||||;':!|||||||||||||||!'    '||||||||||||||||!!
+            !|||||||!' `;|||||||||||!`     '!|||||||||||||||!!
+            !|||||||||!'   '!||||||;.      `!|||||||||||||||!!
+            !|||||||||||;.    .:!|:         :|||||||||||||||!!
+            !||||||||||||!`                 `!||||||||||||||!!
+            !|||||||||||||;`                 '!|||||||||||||!!
+            !||||||||||||||:                  :|||||||||||||!!
+            !||||||||||||||;.      .           '||||||||||||!!
+            !||||||||||||||!`  `!||||||;`       '!||||||||||!!
+            !||||||||||||||!` '|||||||||||!:     .;|||||||||!!
+            !||||||||||||||!''!||||||||||||||!:.   :||||||||!!
+            !||||||||||||||!;;||||||||||||||||||!:  .;||||||!!
+            !||||||||||||||!;!|||||||||||||||||||||!: '!||||!!
+            !||||||||||||||!!|||||||||||||||||||||||||!':|||!!
+            !|||||||||||||||||||||||||||||||||||||||||||!;;|!!
+            !|||||||||||||||||||||||||||||||||||||||||||||||!!
+            !|||||||||||||||||||||||||||||||||||||||||||||||!!
+
+        交互:rexhang && 视觉:rexhang && 重构:rexhang && 前端:rexhang
+                            rexhang倾情出品
+    -->
+	<meta charset="utf-8">
+	<link rel="shortcut icon" href="%PUBLIC_URL%/favicon.ico">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	<meta name="theme-color" content="#000000">
+	<meta name="author" content="rexhang">
+	<meta name="create" content="2018">
+	<link rel="manifest" href="%PUBLIC_URL%/manifest.json">
+	<link rel="stylesheet" type="text/css" href="./libs/css/rex-ui.css">
+	<title>门诊就诊系统</title>
+
+	<!--<link rel="stylesheet" href="//g.alicdn.com/de/prismplayer/2.7.4/skins/default/aliplayer-min.css" />-->
+	<!--<script type="text/javascript" charSet="utf-8" src="//g.alicdn.com/de/prismplayer/2.7.4/aliplayer-min.js"></script>-->
+	<!--<script type="text/javascript" charSet="utf-8" src="//cdnjs.cloudflare.com/ajax/libs/pdfobject/2.1.1/pdfobject.min.js"></script>-->
+	<!--<script type="text/javascript" charSet="utf-8" src="./libs/js/three.min.js"></script>-->
+	<!--<script type="text/javascript" charSet="utf-8" src="./libs/js/xlsx.core.min.js"></script>-->
+</head>
+<body>
+<noscript>
+	You need to enable JavaScript to run this app.
+</noscript>
+<div id="rexhang-wrap"></div>
+<div id="modal-root"></div>
+<script src="./libs/js/jquery-1.11.1.min.js"></script>
+<script src="./libs/js/ChinesePY.js"></script>
+<script>
+	console.log(window.navigator.appVersion);
+	window.isV8 = function() {
+		return window.navigator.appVersion.indexOf('Electron') > 0;
+	};
+	if(isV8()){
+		window.electron = window.require('electron');
+	}
+</script>
+</body>
+</html>

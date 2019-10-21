@@ -1,0 +1,29 @@
+.Wraps{
+	overflow: hidden;
+	margin: 16px;
+	border-radius: 4px;
+	box-shadow: 0 2px 8px rgba(40, 120, 255, 0.11), 0 3px 8px rgba(0, 0, 0, 0.11);
+	will-change: auto;
+	transform: translateY(0);
+	animation: load-wraps .5s 1;
+	//border-bottom: 1px solid #f1ecec;
+	.c_body{
+		padding: 16px;
+		background-color: #fff;
+		.c_head{
+			overflow: hidden;
+		}
+		.c_ctn{
+			padding: 10px 0;
+		}
+	}
+}
+
+@keyframes load-wraps{
+	from{
+		transform: translateY(-15px);
+	}
+	to{
+		transform: translateY(0);
+	}
+}

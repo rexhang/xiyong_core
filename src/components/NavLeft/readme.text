@@ -1,0 +1,7 @@
+跳转iframe逻辑:
+包含link则需要iframe形式加载右侧内容区
+包含link & params 则需要在此基础上拼接本后台参数
+eg:
+link + params
+此处约定拼接参数为uid 和 app_host
+http://vrdemo.pano-v.com/member/mediares?iframe=1&uid=xx&app_host=window.location.host

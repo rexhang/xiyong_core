@@ -1,0 +1,50 @@
+/*
+* @Author: rexhang
+* @Date:   2018-10-17 10:50:17
+* @Last Modified by:   rexhang
+* @Last Modified time: 2018-10-17 10:50:24
+*/
+
+*{
+	padding: 0;
+	margin: 0;
+}
+
+body{
+
+	#root{
+		height: 100%;
+	}
+}
+
+.ant-menu-dark, .ant-menu-dark .ant-menu-sub{
+	background: #333 !important;
+}
+
+.ant-menu-dark .ant-menu-inline.ant-menu-sub{
+	background: rgb(43, 49, 58) !important;
+}
+
+.rex-scroll-bar{
+	-webkit-overflow-scrolling: touch;
+	/*滚动条样式*/
+	&::-webkit-scrollbar {
+		width: 3px;
+		display: none;
+	}
+	&::-webkit-scrollbar-thumb {
+		border-radius: 1.5px;
+		-webkit-box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
+		background: #F79F17;
+	}
+	&::-webkit-scrollbar-track {
+		border-radius: 1.5px;
+		-webkit-box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
+		background: #EDEDED;
+	}
+	&:hover{
+		&::-webkit-scrollbar {
+			display: block;
+		}
+	}
+}

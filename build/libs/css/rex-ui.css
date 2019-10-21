@@ -1,0 +1,586 @@
+/*
+ 	=== info ===
+ 	* Filename: rex-ui.css
+ 	* Decscription: REST-CSS
+ 	* Version: 2.0.7 (2017.09.15)
+ 	* Website: http://rexhang.com
+ 	* Author: Rexhang (rexhang@outlook.com)
+ 	* Contact: QQ (1134916452)
+ */
+/*隐藏body滚动条*/
+/*body::-webkit-scrollbar {
+    display: none;
+}*/
+/*滚动条样式-滚动条整条背景和宽度*/
+/*::-webkit-scrollbar {
+    width: 10px;
+    background: #888;
+}*/
+/*滚动条滑块背景色*/
+/*::-webkit-scrollbar-thumb {
+    background: #FB2646;
+}*/
+/*全文文字选中样式*/
+/*::selection {
+    background-color: #FB2646;
+    color: #fff;
+}*/
+/*placeholder样式设置*/
+/*::-webkit-input-placeholder
+{
+    font-size: 1.4rem;
+
+    color: #bbb;
+}*/
+body,
+div,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+header,
+ul,
+li,
+dl,
+dt,
+dd,
+ol,
+nav,
+input,
+footer
+{
+    margin: 0;
+    padding: 0;
+}
+body
+{
+    font-family: 'Segoe UI','Lucida Grande',Helvetica,Arial,'Microsoft YaHei',FreeSans,Arimo,'Droid Sans','wenquanyi micro hei','Hiragino Sans GB','Hiragino Sans GB W3',FontAwesome,sans-serif;
+
+    width: 100%;
+
+    color: #333;
+}
+body,
+button,
+input,
+select,
+textarea
+{
+    font: 10px/1.5 Microsoft Yahei, Tahoma, Helvetica, Arial, '\5b8b\4f53', sans-serif;
+}
+button
+{
+    border: 0;
+}
+html
+{
+    font-size: 62.5%;
+    font-size: 10px;
+
+    width: 100%;
+    height: 100%;
+
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+}
+article,
+aside,
+details,
+figcaption,
+figure,
+footer,
+header,
+menu,
+nav,
+section
+{
+    display: block;
+}
+ol,
+ul,
+li
+{
+    list-style: outside none none;
+}
+table
+{
+    border-spacing: 0;
+    border-collapse: collapse;
+}
+a
+{
+    text-decoration: none;
+
+    color: #666;
+}
+a:hover
+{
+    text-decoration: none;
+
+    color: #0da4ff;
+}
+*:focus
+{
+    outline: 0;
+}
+input[type='text'],
+input[type='number']
+{
+    box-sizing: border-box;
+}
+select
+{
+    box-sizing: border-box;
+}
+input[type='submit'],
+input[type='reset'],
+input[type='button']
+{
+    /*去掉让他们看起来像按钮的默认样式*/
+    box-sizing: border-box;
+
+    -webkit-appearance: none;
+}
+textarea
+{
+    overflow-x: hidden;
+    overflow-y: auto;
+
+    box-sizing: border-box;
+
+    -webkit-appearance: none;
+}
+/*去出选中时高亮*/
+img,
+input,
+a
+{
+    border: 0;
+    /*禁止选用文本*/
+    /*-webkit-user-select:none;!*webkit浏览器*!
+    -moz-user-select:none;!*火狐*!
+    -ms-user-select:none;!*IE10*!
+    -o-user-select:none;!*opear*!
+    -khtml-user-select:none;!*早期浏览器*!
+    user-select:none;*/
+    /*干掉触摸引起的背景颜色问题*/
+
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+       -moz-tap-highlight-color: rgba(0, 0, 0, 0);
+        -ms-tap-highlight-color: rgba(0, 0, 0, 0);
+         -o-tap-highlight-color: rgba(0, 0, 0, 0);
+    -webkit-touch-callout: none;
+       -moz-touch-callout: none;
+        -ms-touch-callout: none;
+         -o-touch-callout: none;
+}
+img:hover
+{
+    /*opacity: 0.9;
+    filter: alpha(opacity=90);*/
+}
+.wx-dont-touch{
+    position: relative;
+}
+.wx-dont-touch:after{
+    content: '';
+    display: block;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    left: 0;
+    top: 0;
+    z-index: 1;
+    zoom: 1;
+}
+.rex-text-theme-color-blue
+{
+    color: #00cfd6;
+    /*主题色设置-蓝*/
+}
+.rex-bg-theme-color-blue
+{
+    background-color: #00cfd6;
+    /*主题色设置 - 背景色 - 蓝*/
+}
+.rex-text-theme-color-blue--power
+{
+    color: #00cfd6 !important;
+    /*主题色设置-蓝*/
+}
+.rex-text-theme-color-red--power
+{
+    color: #ff6e72 !important;
+    /*主题色设置-蓝*/
+}
+.rex-text-theme-color-red
+{
+    color: #ff6e72;
+    /*主题色设置 - 红*/
+}
+.rex-bg-theme-color-red
+{
+    background-color: #ff6e72;
+    /*主题色设置 - 背景色 - 红*/
+}
+.rex-ui-text-bold
+{
+    font-weight: bold;
+}
+.rex-text-10
+{
+    font-size: 1rem;
+
+    -webkit-transform: scale(.8);
+}
+.rex-text-12
+{
+    font-size: 1.2rem;
+}
+.rex-text-14
+{
+    font-size: 1.4rem;
+}
+.rex-text-16
+{
+    font-size: 1.6rem;
+}
+.rex-text-18
+{
+    font-size: 1.8rem;
+}
+.rex-text-20
+{
+    font-size: 2rem;
+}
+.rex-text-22
+{
+    font-size: 2.2rem;
+}
+.rex-text-24
+{
+    font-size: 2.4rem;
+}
+.rex-text-30
+{
+    font-size: 3rem;
+}
+.rex-text-center
+{
+    text-align: center;
+}
+.rex-text-left
+{
+    text-align: left;
+}
+.rex-text-right
+{
+    text-align: right;
+}
+.rex-float-left
+{
+    float: left;
+}
+.rex-float-right
+{
+    float: right;
+}
+.rex-text-color-999
+{
+    color: #999;
+}
+.rex-text-color-666
+{
+    color: #666 !important;
+}
+.rex-text-color-333
+{
+    color: #333 !important;
+}
+.rex-text-color-red
+{
+    color: #f00;
+}
+.rex-text-color-000
+{
+    color: #000;
+}
+.rex-text-color-fff
+{
+    color: #fff;
+}
+.rex-bg-color-fff
+{
+    background-color: #fff;
+}
+.rex-bg-color-000
+{
+    background-color: #000;
+}
+.rex-hide
+{
+    display: none;
+}
+.rex-show
+{
+    display: block;
+}
+.rex-visibility-hide
+{
+    visibility: hidden;
+}
+.rex-visibility-show
+{
+    visibility: visible;
+}
+.rex-test-border
+{
+    border: 1px solid #f00;
+}
+.rex-box-sizing
+{
+    box-sizing: border-box;
+}
+.rex-border-ccc
+{
+    border: 1px solid #ccc;
+}
+.rex-border-red
+{
+    border: 1px solid #f00;
+}
+.rex-min-px
+{
+    position: relative;
+}
+.rex-min-px:after
+{
+    position: absolute;
+    z-index: -1;
+    top: 0;
+    left: 0;
+
+    box-sizing: border-box;
+    width: 200%;
+    height: 200%;
+
+    content: '';
+    -webkit-transform: scale(.5);
+            transform: scale(.5);
+    -webkit-transform-origin: top left;
+            transform-origin: top left;
+
+    border: 1px solid #ccc;
+}
+.rex-cursor-pointer
+{
+    cursor: pointer;
+}
+.rex-block
+{
+    display: block;
+}
+.rex-inlineblock
+{
+    display: inline-block;
+}
+.rex-none
+{
+    display: none;
+}
+
+.rex-vertical-align-middle
+{
+    vertical-align: middle;
+}
+.rex-vertical-align-top
+{
+    vertical-align: top;
+}
+.rex-vertical-align-bottom
+{
+    vertical-align: bottom;
+}
+.rex-clearboth
+{
+    clear: both;
+}
+.rex-clearfloat
+{
+    zoom: 1;
+}
+.rex-clearfloat:after
+{
+    display: block;
+    visibility: hidden;
+    clear: both;
+
+    height: 0;
+
+    content: '';
+}
+.rex-overflow-x-hidden
+{
+    overflow-x: hidden;
+}
+.rex-overflow-y-hidden
+{
+    overflow-y: hidden;
+}
+.rex-overflow-hidden
+{
+    overflow: hidden;
+}
+.rex-position-relative
+{
+    position: relative;
+}
+.rex-position-absolute
+{
+    position: absolute;
+}
+
+/**
+ * new rex-ui
+ * 2017-01-19
+ */
+
+.rex-fl{
+    float: left !important;
+}
+.rex-fr{
+    float: right !important;
+}
+.rex-cf
+{
+    zoom: 1;
+}
+.rex-cf:after
+{
+    display: block;
+    visibility: hidden;
+    clear: both;
+    height: 0;
+    content: '';
+}
+.rex-border-gray{
+    border: 1px solid #ccc;
+}
+.rex-border-red{
+    border: 1px solid #f00;
+}
+.rex-border-black{
+    border: 1px solid #000;
+}
+.rex-border-white{
+    border: 1px solid #fff;
+}
+.rex-bg-gray{
+    background-color: #ccc !important;
+}
+.rex-bg-red{
+    background-color: #f00;
+}
+.rex-bg-black{
+    background-color: #000;
+}
+.rex-bg-white{
+    background-color: #fff;
+}
+
+.rex-position-r{
+    position: relative;
+}
+.rex-position-a{
+    position: absolute;
+}
+
+.rex-block{
+    display: block !important;
+}
+.rex-inlineblock{
+    display: inline-block !important;
+}
+.rex-hide{
+    display: none !important;
+}
+
+.rex-border-box{
+    box-sizing: border-box;
+}
+
+.rex-text-overflow{
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.rex-center{
+    text-align: center !important;
+}
+
+.rex-radius{
+    border-radius: 50%;
+}
+
+.rex-disable-select{
+    -webkit-user-select:none;
+    -moz-user-select:none;
+    -ms-user-select:none;
+    -o-user-select:none;
+    -khtml-user-select:none;
+    user-select:none;
+}
+/* rex按钮 */
+.rex-btn{
+    width: 100px;
+    height: 44px;
+    line-height: 44px;
+    text-align: center;
+    cursor: pointer;
+}
+.rex-btn.radius{
+    border-radius: 6px;
+}
+.rex-btn.default{
+    background-color: gray;
+    color: #fff;
+}
+.rex-btn.primary{
+    background-color: #16c6bd;
+    color: #fff;
+}
+.rex-btn.success{
+    background-color: #0cc469;
+    color: #fff;
+}
+.rex-btn.info{
+    background-color: #125dec;
+    color: #fff;
+}
+.rex-btn.warning{
+    background-color: #e45d16;
+    color: #fff;
+}
+.rex-btn.error{
+    background-color: #ED2D2E;
+    color: #fff;
+}
+.rex-btn.small{
+    width: 60px;
+    height: 40px;
+    line-height: 40px;
+}
+.rex-btn.normal{
+    width: 100px;
+    height: 44px;
+    line-height: 44px;
+}
+.rex-btn.large{
+    width: 140px;
+    height: 50px;
+    line-height: 50px;
+}

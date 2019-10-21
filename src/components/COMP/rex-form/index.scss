@@ -1,0 +1,21 @@
+.RexForm{
+    overflow: hidden;
+    .f_body{
+        .f_lable{
+            float: left;
+            //padding: 0 16px;
+            margin-right: 16px;
+        }
+        .f_ctn{
+            float: left;
+            .special-list{
+                .special-item{
+                    margin-bottom: 6px;
+                    &:last-child{
+                        margin-bottom: 0;
+                    }
+                }
+            }
+        }
+    }
+}

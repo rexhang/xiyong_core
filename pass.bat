@@ -1,0 +1,1 @@
+asar pack ./xiyongApplication-win32-x64/resources/app ./xiyongApplication-win32-x64/resources/app.asar

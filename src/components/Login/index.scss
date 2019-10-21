@@ -1,0 +1,111 @@
+.Login {
+	overflow: hidden;
+	position: relative;
+	z-index: 2;
+	background-image: url("../../img/ant-bg.svg");
+	background-repeat: no-repeat;
+	background-position: center;
+	background-size: 100%;
+	animation: runbg 1s 1;
+	.center-box{
+		transition: all .4s linear;
+		.logo{
+			width: 220px;
+			margin: 0 auto;
+			position: relative;
+			.logobox{
+				width: 120px;
+				margin: 0 auto;
+				.logoimg{
+					border: 1px solid #84540e;
+				}
+			}
+			.slogan{
+				width: 100%;
+				text-align: center;
+				margin-top: 10px;
+				overflow: hidden;
+				.name{
+					display: block;
+					width: 100%;
+					font-size: 14px;
+					color: rgba(0,0,0,.45);
+					white-space: nowrap;
+					overflow: hidden;
+					animation: typing 1s steps(144, end);
+				}
+			}
+		}
+		.loginbx{
+			width: 240px;
+			box-shadow: 0 2px 4px 0 rgba(153,153,153,0.3);
+			border-radius:4px;
+			border: 1px solid #eae2e2;
+			margin: 20px auto 0;
+			padding: 20px;
+			position: relative;
+			h3{
+				width: 100%;
+				text-align: center;
+				color: #666;
+				font-size: 16px;
+				margin-bottom: 20px;
+			}
+			.remember{
+				margin: -10px 0 10px 0;
+			}
+		}
+	}
+	.footerinfo{
+		position: fixed;
+		bottom: 10px;
+		left: 50%;
+		margin-left: -250px;
+		width: 500px;
+		.info{
+			color: #666;
+			width: 240px;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			margin: 0 auto;
+			.link-item{
+				padding: 0 20px;
+				a{
+					color: #999;
+					&:hover{
+						color: #666;
+						text-decoration: underline;
+					}
+				}
+			}
+		}
+		.copyright{
+			text-align: center;
+			color: #999;
+			margin-top: 10px;
+		}
+	}
+	#components-form-demo-normal-login .login-form {
+		max-width: 300px;
+	}
+	#components-form-demo-normal-login .login-form-forgot {
+		float: right;
+	}
+	#components-form-demo-normal-login .login-form-button {
+		width: 100%;
+	}
+	@keyframes runbg {
+		from {
+			opacity: 0;
+		}
+		to {
+			opacity: 1;
+		}
+	}
+	@keyframes typing {
+		from {
+			transform: translateX(126px);
+		}
+	}
+}

@@ -1,0 +1,184 @@
+$grayColor: #e5e4e4;
+
+.Prescribe{
+    overflow-y: hidden;
+    min-height: 600px;
+    .title{
+        text-align: center;
+        margin: 40px auto 30px;
+    }
+    .content{
+        overflow: visible !important;
+        .filter-box{
+            position: relative;
+            .search-input{
+                width: 600px;
+                margin: 0 auto;
+                display: block;
+                box-sizing: border-box;
+                input{
+                    padding: 0 15px;
+                }
+            }
+            .filter-list{
+                position: absolute;
+                z-index: 9;
+                left: 50%;
+                margin-left: -300px;
+                width: 600px;
+                box-sizing: border-box;
+                .item-list{
+                    width: 512px;
+                    box-sizing: border-box;
+                    border: 1px solid $grayColor;
+                    border-top: 0;
+                    float: left;
+                    .rex-item-hover{
+                        padding-left: 15px;
+                        padding-right: 15px;
+                        cursor: url('./assets/pointer_mouse.cur'), pointer;
+                        background-color: #fff;
+                        &:hover{
+                            background-color: #e3e8ff;
+                        }
+                    }
+                }
+            }
+        }
+        .main-box{
+            margin-top: 30px;
+            min-height: 600px;
+            .infomations{
+                width: 1250px;
+                margin: 0 auto;
+                padding: 25px;
+                border: 1px solid $grayColor;
+                background-color: #fff;
+                .userinfo{
+                    width: 100%;
+                }
+                .sick-list{
+                    .name{
+                        margin-bottom: 20px;
+                        color: rgba(0, 0, 0, 0.85);
+                        font-weight: bold;
+                        font-size: 16px;
+                        line-height: 1.5;
+                    }
+                }
+            }
+        }
+    }
+    .paginationRight{
+        float: right;
+    }
+    .paginationLeft{
+        float: left;
+    }
+   
+    .user-infomations{
+        width: auto;
+        padding: 25px;
+        border: 1px solid #e5e4e4;
+        background-color: #fff;
+        .userinfo{
+    
+        }
+    }
+   
+    .form-ctrls{
+        .item{
+            display: flex;
+            align-items: center;
+            margin-right: 12px;
+            &:last-child{
+                margin-right: 0;
+            }
+            span.name{
+                color: #333;
+                font-size: 16px;
+                margin-right: 10px;
+            }
+        }
+        .label-box{
+            &.align-center{
+                display: flex;
+                align-items: center;
+            }
+            .label-name{
+                color: #333;
+                font-size: 14px;
+                margin-right: 10px;
+                text-align: right;
+                &.w154{
+                    width: 154px;
+                }
+            }
+            .label-forms{
+        
+            }
+        }
+    }
+   
+    .cf-content{
+        .choice-content{
+            .cy{
+                display: flex;
+                align-items: center;
+            }
+        }
+    }
+    .cf-list-unit{
+        display: flex;
+        align-items: center;
+        .names{
+            font-size: 16px;
+            color: #333;
+            margin-right: 12px;
+        }
+    }
+    .DivFieldset1{
+        .DivFieldset1_title{
+            color: #333;
+            font-size: 16px;
+            position: relative;
+            left: 10px;
+            top: 12px;
+            white-space: nowrap;
+            text-align: center;
+            background-color: #fff;
+            width: 90px;
+        }
+        .DivFieldset1_content{
+            height: auto;
+            width: 800px;
+            border: $grayColor 1px solid;
+            .rex-fctns{
+                margin: 15px;
+                .cf-tools{
+                    margin: 15px;
+                    max-height: 450px;
+                    overflow-y: auto;
+                    .cf-rows{
+                        float: left;
+                        margin-bottom: 12px;
+                        &:last-child{
+                            margin-bottom: 0;
+                        }
+                        .sel{
+                        }
+                        .weight-put{
+                            width: 120px;
+                            margin-left: 12px;
+                        }
+                        .remove-cf-rows{
+                        }
+                    }
+                    .add-cf-rows{
+                        width: 160px;
+                    }
+                }
+            }
+        }
+    }
+}
