@@ -1,5 +1,5 @@
-# Doctor-Library-Admin
-[Doctor-Library-Admin]是一个配合Doctor-Library使用的后台管理系统开发
+# Doctor-Core-Admin
+[Doctor-Core-Admin]是一个配合Doctor-Library-Admin使用的前台中医医疗就诊系统
 
 ### 基础环境
 `node >= 9.10.0 npm >= 5.6.0`
@@ -8,7 +8,7 @@
 [![npm](https://img.shields.io/npm/l/gitee-frontend.svg)](https://gitee.com/mayun-team/gitee-frontend/blob/master/LICENSE)
 
 ### 项目介绍
-Doctor-Library后台管理系统的开发
+Doctor-Core-Admin后台管理系统的开发
 
 ### 软件架构
 This project was bootstrapped with [Create React App](https://github.com/facebookincubator/create-react-app).
@@ -21,6 +21,6 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
  $ yarn install && yarn start
 ````
 
-##### Author @Rexhang Create At 2018.
+##### Author @Rexhang First Create At 2018.
 
 ##### Welcome To My [Website](https://rexhang.com/) and [Blog](http://www.rexhang.com/blog/).
