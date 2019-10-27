@@ -1,5 +1,7 @@
 import React from 'react';
 
+import rdom from 'react-dom';
+
 import './index.scss';
 
 import {setTitle, getWindowSize, LocalStorage} from '../../../../util';
@@ -55,6 +57,8 @@ class Prescribe extends React.Component {
 	static getDrugPageSize = 10;
 
 	static dateformat = 'YYYY-MM-DD';
+
+	SCALE = 1;
 
 	getBase64 = (file) => {
 		return new Promise((resolve, reject) => {
@@ -1422,6 +1426,7 @@ class Prescribe extends React.Component {
 	};
 
 	supportCamera = false;
+	mediaStreamTrack = null;
 
 	openCamera = () => {
 	    // 打开摄像头拍照
@@ -1432,6 +1437,7 @@ class Prescribe extends React.Component {
 				const constraintsOpts = {audio: false, video: {width: 310, height: 310}};
 				//  调用摄像头  成功后获取视频流：mediaStream
 				navigator.mediaDevices.getUserMedia(constraintsOpts).then(mediaStream => {
+					this.mediaStreamTrack = mediaStream;
 					console.log('初始化完毕...');
 					this.supportCamera = true;
 					// 显示按钮
@@ -1536,7 +1542,8 @@ class Prescribe extends React.Component {
 		let video = document.getElementById('cameraVideo');
 		let canvas = document.getElementById("canvas-camera");
 		let ctx = canvas.getContext('2d');
-		ctx.drawImage(video, 0, 0, 310, 310);
+		const drawRange = [310, 310];
+		ctx.drawImage(video, 0, 0, drawRange[0], drawRange[1]);
 		// const image = new Image();
 		const base64SRC = canvas.toDataURL("image/jpeg", 0.4); // DataUrl
 		// image.src = base64SRC;
@@ -1832,14 +1839,17 @@ class Prescribe extends React.Component {
 								<span className='rex-fl name'>当前系统日期: {moment().format(Prescribe.dateformat)}</span>
 							</div>
 						</div>
-						<React.Fragment>
-							<Placeholder height={15} />
-							<div className='form-ctrls rex-cf'>
-								<div className='item rex-fl' style={{display: 'flex'}}>
-									<span className='rex-fl name'>上次就诊日期: {this.state.formQueryDatas.current_date}</span>
-								</div>
-							</div>
-						</React.Fragment>
+						{
+							this.state.formQueryDatas.current_date?
+								<React.Fragment>
+									<Placeholder height={15} />
+									<div className='form-ctrls rex-cf'>
+										<div className='item rex-fl' style={{display: 'flex'}}>
+											<span className='rex-fl name'>上次就诊日期: {this.state.formQueryDatas.current_date}</span>
+										</div>
+									</div>
+								</React.Fragment>:null
+						}
 						{/*this.pid=true 代表是新增一页的*/}
 						{/*{
 							this.pid?
@@ -2141,16 +2151,52 @@ class Prescribe extends React.Component {
 																	<div className="ant-upload-text">上传图像</div>
 																</div>}
 															</Upload>
-															<Button icon='camera' onClick={()=>this.openCamera()}>拍摄照片</Button>
+															<Button icon='camera' onClick={()=>this.openCamera()} title='拍摄照片'>拍摄照片</Button>
 															<Modal title='图像预览' visible={state.previewVisible} footer={null} onCancel={()=>{
+																rdom.findDOMNode(this.bigImg).style.transform = `scale(1)`;
+																this.SCALE = 1;
 																this.setState({
 																	previewVisible: false
 																});
 															}}>
-																<img alt="example" style={{ width: '100%', padding: 15 }} src={state.previewImage} />
+																<div>
+																	<img onMouseDown={ev=>{
+																		if(ev.nativeEvent.button === 1){
+																			rdom.findDOMNode(this.bigImg).style.transform = `scale(1)`;
+																			this.SCALE = 1;
+																		}
+																	}} onWheel={(ev)=>{
+																		console.log(ev.nativeEvent.deltaY);
+																		const OffsetY = ev.nativeEvent.deltaY;
+																		if (OffsetY < 0){
+																			// 向上滚动, 进行放大
+																			if(this.SCALE >= 1.7){
+																				message.info('不可继续放大了~');
+																			} else {
+																				this.SCALE += 0.1;
+																				// rdom.findDOMNode(this.bigImg).css('transform', `scale(${this.SCALE})`);
+																				rdom.findDOMNode(this.bigImg).style.transform = `scale(${this.SCALE})`;
+																			}
+																		} else {
+																			// 向下滚动, 进行缩小
+																			if(this.SCALE <= 0.2){
+																				message.info('不可继续缩小了~');
+																			} else {
+																				this.SCALE -= 0.1;
+																				// rdom.findDOMNode(this.bigImg).css('transform', `scale(${this.SCALE})`);
+																				rdom.findDOMNode(this.bigImg).style.transform = `scale(${this.SCALE})`;
+																			}
+																		}
+																	}} alt="example" ref={self => this.bigImg = self} style={{ width: '100%', padding: 15, transition: 'transform .2s linear' }} src={state.previewImage} />
+																</div>
 															</Modal>
 															<Modal title='拍摄照片' width={800} visible={state.cameraModal} footer={null} onCancel={()=>{
 																document.getElementById("canvas-camera").style.display = 'none';
+																if(this.mediaStreamTrack!==null){
+																	this.mediaStreamTrack.getTracks().forEach(function (track) {
+																		track.stop();
+																	});
+																}
 																this.setState({
 																	cameraModal: false,
 																	cameraFile: null
@@ -2161,7 +2207,7 @@ class Prescribe extends React.Component {
 																		<div className="c-center" style={{width: 310, margin: '0 auto'}}>
 																			<video width="310" height="310" id="cameraVideo" />
 																			<div>
-																				<canvas id="canvas-camera" style={{display: 'none'}} width="310px" height="310px" />
+																				<canvas id="canvas-camera" style={{display: 'none'}} width="310" height="310" />
 																			</div>
 																			<Placeholder height={15} />
 																			<div style={{display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
@@ -2940,7 +2986,7 @@ class Prescribe extends React.Component {
 																		<div className="ant-upload-text">上传图像</div>
 																	</div>}
 																</Upload>
-																<Button icon='camera' onClick={()=>this.openCamera()}>拍摄照片</Button>
+																<Button icon='camera' onClick={()=>this.openCamera()} title='拍摄照片'>拍摄照片</Button>
 															</div>
 														</div>
 													</div>

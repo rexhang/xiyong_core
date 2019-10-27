@@ -93,7 +93,8 @@
     "electron-start": "electron .",
     "pack": "electron-packager . xiyongApplication --win --out . --arch=x64 --app-version=0.0.1 --overwrite --electron-version=6.0.9 --icon=./public/favicon.ico --ignore=\"(src|.idea|.git|.eslint*|yarn-error.log|yarn.lock|docs|.gitignore|LICENSE|README.md|webpack.config*|node_modules)\"",
     "pack-mac": "sudo electron-packager . xiyongApplication --darwin --out . --arch=x64",
-    "packdmg": "npm i electron-installer-dmg -g"
+    "packdmg": "npm i electron-installer-dmg -g",
+    "asar": "asar pack ./app app.asar"
   },
   "eslintConfig": {},
   "browserslist": [
