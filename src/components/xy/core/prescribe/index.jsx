@@ -2166,7 +2166,7 @@ class Prescribe extends React.Component {
 																			this.SCALE = 1;
 																		}
 																	}} onWheel={(ev)=>{
-																		console.log(ev.nativeEvent.deltaY);
+																		// console.log(ev.nativeEvent.deltaY);
 																		const OffsetY = ev.nativeEvent.deltaY;
 																		if (OffsetY < 0){
 																			// 向上滚动, 进行放大
