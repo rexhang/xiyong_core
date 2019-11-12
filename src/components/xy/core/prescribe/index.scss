@@ -7,6 +7,13 @@ $grayColor: #e5e4e4;
         text-align: center;
         margin: 40px auto 30px;
     }
+    .cf_hr{
+        border: 0;
+        border-bottom: 1px dashed #beaeae;
+        padding: 0;
+        height: 0;
+        margin: 0 0 12px 0;
+    }
     .content{
         overflow: visible !important;
         .filter-box{

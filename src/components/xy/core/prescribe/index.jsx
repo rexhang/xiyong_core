@@ -204,8 +204,7 @@ class Prescribe extends React.Component {
 		drug_list: [],
 		/*处方清单*/
 		cf_info_list: [
-			{drug_id: undefined, weight: '', price: 0, empty: false},
-			{drug_id: undefined, weight: '', price: 0, empty: false}
+			/*{drug_id: undefined, weight: '', price: 0, empty: false},*/
 		],
 		hide_cf_list: false,
 		thumb: '',
@@ -221,6 +220,7 @@ class Prescribe extends React.Component {
 		xuewei_list_id: undefined,
 		xuewei_list: [],
 		ll_count: '1',
+		ll_count_doing: '0',
 		only_show: '100',
 		tcm_list: [],
 		treatment_list: [],
@@ -236,7 +236,19 @@ class Prescribe extends React.Component {
 		videoPreviewUrl: '',
 		cameraModal: false,
 		cameraFile: null,
-		cameraFileUploading: false
+		cameraFileUploading: false,
+		addOpt1: false,
+		addOpt2: false,
+		addOpt3: false,
+		addOpt4: false,
+		addOpt_val1: '',
+		addOpt_val2: '',
+		addOpt_val3: '',
+		addOpt_val4: '',
+		associate_id: undefined,
+		associate_price: '',
+		associate_weight: '',
+		doing_ll_loading: false
 	};
 
 	searchbox = null;
@@ -518,7 +530,7 @@ class Prescribe extends React.Component {
 								treatment_id: D.treatment_id!=='0' && D.treatment_id !== ''?D.treatment_id:undefined,
 								western_diagnosis_id: D.western_diagnosis_id!=='0' && D.western_diagnosis_id !== ''?D.western_diagnosis_id:undefined,
 								advise: D.advise,
-								drug_reaction: D.drug_reaction,
+								drug_reaction: D.drug_reaction?D.drug_reaction:'',
 								update_time: D.update_time,
 								files,
 								current_date: res.data.data.date?res.data.data.date:undefined,
@@ -594,6 +606,7 @@ class Prescribe extends React.Component {
 							return v.acupoint_id;
 						}); // 为了显示value值
 						setObj.ll_count = datas.nums;
+						setObj.ll_count_doing = datas.done_nums;
 						setObj.activeKey2 = '2';
 						setObj.ll_list_id = datas.liliao_id !== '0' && datas.liliao_id !== ''?datas.liliao_id:undefined;
 						if (setObj.ll_list_id) {
@@ -694,60 +707,60 @@ class Prescribe extends React.Component {
 			}
 			const {patient_desc, disease_history, inspection_result, diagnosis_id, advise, files, disease_record_id, disease_past, disease_family, tcm_id, treatment_id, western_diagnosis_id, drug_reaction } = this.state.formQueryDatas; // 必填字段
 
-			if (!patient_desc) {
-				message.warn('请填写患者主诉');
-				return false;
-			}
-			if (!disease_history) {
-				message.warn('请填写现病史');
-				return false;
-			}
-			if (!disease_past) {
-				message.warn('请填写既往史');
-				return false;
-			}
-			if (!disease_family) {
-				message.warn('请填写家族史');
-				return false;
-			}
-			if (!inspection_result) {
-				message.warn('请填写实验室检查查信息');
-				return false;
-			}
-			if (!treatment_id) {
-				message.warn('请选择治法治则');
-				return false;
-			}
+			// if (!patient_desc) {
+			// 	message.warn('请填写患者主诉');
+			// 	return false;
+			// }
+			// if (!disease_history) {
+			// 	message.warn('请填写现病史');
+			// 	return false;
+			// }
+			// if (!disease_past) {
+			// 	message.warn('请填写既往史');
+			// 	return false;
+			// }
+			// if (!disease_family) {
+			// 	message.warn('请填写家族史');
+			// 	return false;
+			// }
+			// if (!inspection_result) {
+			// 	message.warn('请填写实验室检查查信息');
+			// 	return false;
+			// }
+			// if (!treatment_id) {
+			// 	message.warn('请选择治法治则');
+			// 	return false;
+			// }
 			if (!diagnosis_id) {
 				message.warn('请选择中医诊断');
 				return false;
 			}
-			if (!tcm_id) {
-				message.warn('请选择中医证型');
-				return false;
-			}
-			if (!western_diagnosis_id) {
-				message.warn('请选择西医诊断');
-				return false;
-			}
-			if (!advise) {
-				message.warn('请填写医嘱');
-				return false;
-			}
+			// if (!tcm_id) {
+			// 	message.warn('请选择中医证型');
+			// 	return false;
+			// }
+			// if (!western_diagnosis_id) {
+			// 	message.warn('请选择西医诊断');
+			// 	return false;
+			// }
+			// if (!advise) {
+			// 	message.warn('请填写医嘱');
+			// 	return false;
+			// }
 			// 拟定保存字段
 			let postObject = {
 				patient_id: this.state.currentUserInfo.id,
-				patient_desc,
-				disease_history,
-				inspection_result,
+				patient_desc: patient_desc?patient_desc:'',
+				disease_history: disease_history?disease_history:'',
+				inspection_result: inspection_result?inspection_result:'',
 				diagnosis_id,
-				advise,
-				disease_past,
-				disease_family,
-				tcm_id,
-				treatment_id,
-				western_diagnosis_id,
-				drug_reaction
+				advise: advise?advise:'',
+				disease_past: disease_past?disease_past:'',
+				disease_family: disease_family?disease_family:'',
+				tcm_id: tcm_id?tcm_id:undefined,
+				treatment_id: treatment_id?treatment_id:undefined,
+				western_diagnosis_id: western_diagnosis_id?western_diagnosis_id:undefined,
+				drug_reaction: drug_reaction?drug_reaction:''
 			};
 			// 选填字段
 			if (this.state.fileList.length>0) {
@@ -843,57 +856,167 @@ class Prescribe extends React.Component {
 					}
 				});
 			}
+		},
+		createOpts: (name, opt_order) => {
+			if (!name){
+				message.warn('请输入内容');
+				return false;
+			}
+			if (opt_order === 1){
+				this.setState({
+					addOpt1: true
+				});
+				$http.post(API.treatmentSave, {
+					name
+				}).then(res=>{
+					if (res.data.code === 200){
+						message.info(`"${name}" 新建成功`);
+						this.setState({
+							addOpt_val1: ''
+						});
+						this.dataCenter.getTreatmentList();
+					}
+				}).finally(()=>{
+					this.setState({
+						addOpt1: false
+					});
+				});
+			}
+			if (opt_order === 2){
+				this.setState({
+					addOpt2: true
+				});
+				$http.post(API.diagnosisSave, {
+					name
+				}).then(res=>{
+					if (res.data.code === 200){
+						message.info(`"${name}" 新建成功`);
+						this.setState({
+							addOpt_val2: ''
+						});
+						this.dataCenter.diagnosisGet();
+					}
+				}).finally(()=>{
+					this.setState({
+						addOpt2: false
+					});
+				});
+			}
+			if (opt_order === 3){
+				this.setState({
+					addOpt3: true
+				});
+				$http.post(API.zyzxSave, {
+					name
+				}).then(res=>{
+					if (res.data.code === 200){
+						message.info(`"${name}" 新建成功`);
+						this.setState({
+							addOpt_val3: ''
+						});
+						this.dataCenter.getTcms();
+					}
+				}).finally(()=>{
+					this.setState({
+						addOpt3: false
+					});
+				});
+			}
+			if (opt_order === 4){
+				this.setState({
+					addOpt4: true
+				});
+				$http.post(API.westerndiagnosisSave, {
+					name
+				}).then(res=>{
+					if (res.data.code === 200){
+						message.info(`"${name}" 新建成功`);
+						this.setState({
+							addOpt_val4: ''
+						});
+						this.dataCenter.getWests();
+					}
+				}).finally(()=>{
+					this.setState({
+						addOpt4: false
+					});
+				});
+			}
+
+		},
+		PhysiotherapyRecord: (name, record) => {
+			// console.log(name);
+			// console.log(record);
+			if (!name){
+				message.warn('请输入操作医师');
+				return false;
+			}
+			this.setState({
+				doing_ll_loading: true
+			});
+			$http.post(API.liLiaoAddRecord, {
+				prescription_id: record.id,
+				doctor_name: name
+			}).then(res=>{
+				if (res.data.code === 200){
+					message.success('操作成功');
+					// 刷新进度
+					this.dataCenter.getcfList(1, this.state.formQueryDatas.disease_record_id);
+				}
+			}).finally(()=>{
+				this.setState({
+					doing_ll_loading: false
+				});
+			});
 		}
 	};
 
 	saveLL = () => {
 	    /*console.log(this.state.ll_count);
 		console.log(this.state.xuewei_list_id);*/
-		if (this.state.xuewei_list_id !== undefined && this.state.xuewei_list_id.length>0) {
-			if (this.state.ll_list_id === undefined || this.state.ll_list_id === '0') {
-				message.warn('请选择理疗项目');
-				return false;
-			}
-			let postdata = {
-				prescription_id: 0,
-				acupoint_ids: this.state.xuewei_list_id.join(','),
-				nums: this.state.ll_count,
-				disease_record_id: this.state.formQueryDatas.disease_record_id,
-				liliao_id: this.state.ll_list_id
-			};
-			if (this.cfEditId !== null) {
-				// 编辑
-				postdata.prescription_id = this.cfEditId;
-				this.dataCenter.createLL(postdata, ()=>{
-					// 刷新获取处方列表接口
-					this.dataCenter.getcfList(1, this.state.formQueryDatas.disease_record_id);
-					Modal.success({
-						title: '提示',
-						content: '处方更新成功',
-						okText: '关闭',
-						onOk: () => {
-							// this.exitStage2();
-						}
-					});
-				}, 'edit');
-			} else {
-				// 新建
-				this.dataCenter.createLL(postdata, (code)=>{
-					// 刷新获取处方列表接口
-					this.dataCenter.getcfList(1, this.state.formQueryDatas.disease_record_id);
-					Modal.success({
-						title: '处方开具成功',
-						content: '处方取货码: 『'+code+'』',
-						okText: '关闭',
-						onOk: () => {
-							this.exitStage2();
-						}
-					});
-				}, 'create');
-			}
-		} else {
-			message.warn('请选择理疗穴位');
+		// xuewei_list_id = 理疗穴位 array
+		if (this.state.ll_list_id === undefined || this.state.ll_list_id === '0') {
+			message.warn('请选择理疗项目');
+			return false;
 		}
+		let postdata = {
+			prescription_id: 0,
+			acupoint_ids: this.state.xuewei_list_id !==undefined && this.state.xuewei_list_id.length >0?this.state.xuewei_list_id.join(','):'',
+			nums: this.state.ll_count,
+			disease_record_id: this.state.formQueryDatas.disease_record_id,
+			liliao_id: this.state.ll_list_id
+		};
+		if (this.cfEditId !== null) {
+			// 编辑
+			postdata.prescription_id = this.cfEditId;
+			this.dataCenter.createLL(postdata, ()=>{
+				// 刷新获取处方列表接口
+				this.dataCenter.getcfList(1, this.state.formQueryDatas.disease_record_id);
+				Modal.success({
+					title: '提示',
+					content: '处方更新成功',
+					okText: '关闭',
+					onOk: () => {
+						// this.exitStage2();
+					}
+				});
+			}, 'edit');
+		} else {
+			// 新建
+			this.dataCenter.createLL(postdata, (code)=>{
+				// 刷新获取处方列表接口
+				this.dataCenter.getcfList(1, this.state.formQueryDatas.disease_record_id);
+				Modal.success({
+					title: '处方开具成功',
+					content: '处方取货码: 『'+code+'』',
+					okText: '关闭',
+					onOk: () => {
+						this.exitStage2();
+					}
+				});
+			}, 'create');
+		}
+
 	};
 
 	exitStage1 = () => {
@@ -1302,10 +1425,23 @@ class Prescribe extends React.Component {
 
 	addCfRows = () => {
 	    // 增加一行处方
-		this.setState({
+		/*this.setState({
 			cf_info_list: [...this.state.cf_info_list, ...[{
 				drug_id: undefined, weight: '', price: 0, empty: false
 			}]]
+		});*/
+		// 增加一行处方
+		this.setState({
+			cf_info_list: [...this.state.cf_info_list, ...[{
+				drug_id: this.state.associate_id, weight: this.state.associate_weight, price: this.state.associate_price, empty: false
+			}]]
+		}, ()=>{
+			// 添加完毕清空
+			this.setState({
+				associate_id: undefined,
+				associate_weight: '',
+				associate_price: ''
+			});
 		});
 	};
 
@@ -1681,7 +1817,7 @@ class Prescribe extends React.Component {
 			// 单价
 			unit_money = state.unit_money * 1;
 			// 针对草药、成药、成品药、state.me_type  0-草药 5-成药 2-成品药 cf_info_list
-			console.log(state.cf_info_list);
+			// console.log(state.cf_info_list);
 			// console.log(state.me_type);
 			state.cf_info_list.forEach(v=>{
 				let weight = 0;
@@ -1982,7 +2118,7 @@ class Prescribe extends React.Component {
 																showSearch
 																placeholder='请选择治法治则'
 																optionFilterProp='label'
-																style={{width: 410}}
+																style={{width: 260}}
 																value={state.formQueryDatas.treatment_id}
 																onChange={(v) => this.handleForm('treatment_id', v)}
 															>
@@ -1997,6 +2133,12 @@ class Prescribe extends React.Component {
 																}
 															</Select>
 														</div>
+														<Placeholder width={10} />
+														<Spin spinning={state.addOpt1} tip={'数据提交中...'}>
+															<Input value={state.addOpt_val1} onChange={e=>this.setState({addOpt_val1: e.target.value})} onPressEnter={(e)=>{
+																this.dataCenter.createOpts(e.target.value, 1);
+															}} placeholder='新增治法治则选项' style={{width: 140}} />
+														</Spin>
 													</div>
 												</div>
 												<Placeholder height={15} />
@@ -2008,7 +2150,7 @@ class Prescribe extends React.Component {
 																showSearch
 																placeholder='请选择中医诊断'
 																optionFilterProp='label'
-																style={{width: 410}}
+																style={{width: 260}}
 																value={state.formQueryDatas.diagnosis_id}
 																onChange={(v) => this.handleForm('diagnosis_id', v)}
 															>
@@ -2023,6 +2165,12 @@ class Prescribe extends React.Component {
 																}
 															</Select>
 														</div>
+														<Placeholder width={10} />
+														<Spin spinning={state.addOpt2} tip={'数据提交中...'}>
+															<Input value={state.addOpt_val2} onChange={e=>this.setState({addOpt_val2: e.target.value})} onPressEnter={(e)=>{
+																this.dataCenter.createOpts(e.target.value, 2);
+															}} placeholder='新增中医诊断选项' style={{width: 140}} />
+														</Spin>
 													</div>
 												</div>
 												<Placeholder height={15} />
@@ -2034,7 +2182,7 @@ class Prescribe extends React.Component {
 																showSearch
 																placeholder='请选择中医证型'
 																optionFilterProp='label'
-																style={{width: 410}}
+																style={{width: 260}}
 																value={state.formQueryDatas.tcm_id}
 																onChange={(v) => this.handleForm('tcm_id', v)}
 															>
@@ -2049,6 +2197,12 @@ class Prescribe extends React.Component {
 																}
 															</Select>
 														</div>
+														<Placeholder width={10} />
+														<Spin spinning={state.addOpt3} tip={'数据提交中...'}>
+															<Input value={state.addOpt_val3} onChange={e=>this.setState({addOpt_val3: e.target.value})} onPressEnter={(e)=>{
+																this.dataCenter.createOpts(e.target.value, 3);
+															}} placeholder='新增中医证型选项' style={{width: 140}} />
+														</Spin>
 													</div>
 												</div>
 												<Placeholder height={15} />
@@ -2060,7 +2214,7 @@ class Prescribe extends React.Component {
 																showSearch
 																placeholder='请选择西医诊断'
 																optionFilterProp='label'
-																style={{width: 410}}
+																style={{width: 260}}
 																value={state.formQueryDatas.western_diagnosis_id}
 																onChange={(v) => this.handleForm('western_diagnosis_id', v)}
 															>
@@ -2075,6 +2229,12 @@ class Prescribe extends React.Component {
 																}
 															</Select>
 														</div>
+														<Placeholder width={10} />
+														<Spin spinning={state.addOpt4} tip={'数据提交中...'}>
+															<Input value={state.addOpt_val4} onChange={e=>this.setState({addOpt_val4: e.target.value})} onPressEnter={(e)=>{
+																this.dataCenter.createOpts(e.target.value, 4);
+															}} placeholder='新增西医诊断选项' style={{width: 140}} />
+														</Spin>
 													</div>
 												</div>
 												<Placeholder height={15} />
@@ -2089,8 +2249,23 @@ class Prescribe extends React.Component {
 												{/*state.sickBook_current_page === state.sickBook_total_page 代表最后一页 因为是倒序 实则是第一页*/}
 												{/*第一页没有药后反应*/}
 												{/*新建病历簿的时候也没药后反应*/}
+												{/*新增一页的时候需要药后反应*/}
 												{
 													state.sickBook_current_page === state.sickBook_total_page || state.sickBook_total_page===0?null:
+														<React.Fragment>
+															<Placeholder height={15} />
+															<div className="form-ctrls">
+																<div className="label-box rex-cf">
+																	<span className="label-name rex-fl w154">药后反应: </span>
+																	<div className="label-forms rex-fl">
+																		<Input.TextArea style={{width: 410}} value={state.formQueryDatas.drug_reaction} onChange={(v)=>this.handleForm('drug_reaction', v.target.value)} placeholder='请输入患者药后反应信息' autosize={{ minRows: 2, maxRows: 6 }} />
+																	</div>
+																</div>
+															</div>
+														</React.Fragment>
+												}
+												{
+													this.pid === null?null:
 														<React.Fragment>
 															<Placeholder height={15} />
 															<div className="form-ctrls">
@@ -2316,9 +2491,11 @@ class Prescribe extends React.Component {
 																	} else if (item.drug_group_type === '5') {
 																		mode_name = '成药';
 																	}
+																	const ll_progress = `(理疗进度: ${item.done_nums}/${item.nums})`;
 																	return (
 																		<List.Item
 																			actions={[
+																				<Input onPressEnter={e=>this.dataCenter.PhysiotherapyRecord(e.target.value, item)} className={item.type === '1'?'':'rex-hide'} placeholder='进行一次理疗,填写操作医师名' style={{width: 220}} />,
 																				<Button type='primary' className={item.status==='20'||item.status===20?'':'rex-hide'} onClick={()=>this.rebackCF(item, _index)}>退款处理</Button>,
 																				<Button type='primary' onClick={()=>this.editCfInfo(item)}>查看/编辑处方</Button>,
 																				<Button type='danger' onClick={()=>this.deleteCF(item, _index)}>删除处方</Button>
@@ -2334,7 +2511,7 @@ class Prescribe extends React.Component {
 																						<br/>
 															支付状态: {item.status === '20' || item.status === 20?'已支付':item.status === '30' || item.status === 30?'已退款':'未支付'}
 																						<br/>
-															处方模式: {mode_name}
+															处方模式: {mode_name} {item.type === '1'?ll_progress:''}
 																					</span>
 																				}
 																			/>
@@ -2441,9 +2618,92 @@ class Prescribe extends React.Component {
 													</div>
 													<div className="DivFieldset1" style={{display: `${state.hide_cf_list?'none':'block'}`}}>
 														<div className="DivFieldset1_title">中药材成分表</div>
-														<div className="DivFieldset1_content" style={{width: 1106}}>
+														<div className="DivFieldset1_content" style={{width: 530}}>
 															<div className="rex-fctns">
-																<div className="cf-tools rex-scroll-bar">
+																<div className="cf-tools rex-scroll-bar" id='cf-ctrlbox'>
+																	<div className="cf-rows rex-cf">
+																		<span style={{
+																			float: 'left',
+																			width: 20,
+																			overflow: 'hidden',
+																			height: 32,
+																			display: 'block',
+																			lineHeight: '32px'
+																		}} />
+																		<Select
+																			className='sel rex-fl'
+																			showSearch={true}
+																			placeholder={'选择药材'}
+																			filterOption={false}
+																			style={{ width: 100, textIndent: 0 }}
+																			notFoundContent={'暂无此药材'}
+																			value={state.associate_id}
+																			onChange={(val)=>{
+																				if(!val){
+																					return false;
+																				}
+																				let _price = state.drug_list.find(_v=>_v.id===val).price;
+																				_price = _price * 1 / 1000;
+																				let _associate_weight = state.drug_list.find(_v=>_v.id===val).auto_weight;
+																				this.setState({
+																					associate_id: val,
+																					associate_price: _price,
+																					associate_weight: _associate_weight
+																				});
+																				// 添加一行
+																				window.setTimeout(()=>{
+																					this.addCfRows();
+																				}, 60);
+																			}}
+																			onSearch={(val)=>{
+																				$http.get(API.drugGet, {
+																					pn: 1,
+																					cn: Prescribe.getDrugPageSize,
+																					name: val
+																				}).then(res=>{
+																					if (res.data.code === 200) {
+																						// console.log(res.data.data.list);
+																						this.setState({
+																							drug_list: res.data.data.list
+																						});
+																					}
+																				});
+																			}}
+																		>
+																			{
+																				state.drug_list.map(v=>{
+																					return (
+																						<Option key={v.id} value={v.id}>{v.name}</Option>
+																					);
+																				})
+																			}
+																		</Select>
+																		<Input
+																			value={state.associate_weight}
+																			className='weight-put rex-fl'
+																			placeholder='克数'
+																			style={{ width: 100, textIndent: 0 }}
+																			maxLength={4}
+																			max={1000}
+																			min={0}
+																			precision={0}
+																			addonAfter={<span>克</span>}
+																		/>
+																		<Input
+																			value={state.associate_price}
+																			readOnly
+																			style={{width: 124}}
+																			className='weight-put rex-fl'
+																			placeholder='单价'
+																			maxLength={4}
+																			max={1000}
+																			min={0}
+																			precision={0}
+																			addonAfter={<span>元/克</span>}
+																		/>
+																		<Button className='rex-fl' type='default' icon='plus' style={{marginLeft: 12}} onClick={() => this.addCfRows()}>添加</Button>
+																	</div>
+																	<hr className='cf_hr' />
 																	{
 																		state.cf_info_list.map((v, i)=>{
 																			return (
@@ -2461,7 +2721,7 @@ class Prescribe extends React.Component {
 																						showSearch={true}
 																						placeholder={'选择药材'}
 																						filterOption={false}
-																						style={{ width: 160, textIndent: 0 }}
+																						style={{ width: 100, textIndent: 0 }}
 																						notFoundContent={v.empty?'暂无此药材':null}
 																						value={v.drug_id}
 																						onChange={(val)=>{
@@ -2494,13 +2754,45 @@ class Prescribe extends React.Component {
 																								cf_info_list
 																							});
 																						}}
-																						className='weight-put rex-fl'
-																						placeholder='药材克数'
+																						className='weight-put rex-fl weight-focus'
+																						placeholder='克数'
+																						style={{ width: 100, textIndent: 0 }}
 																						maxLength={4}
 																						max={1000}
 																						min={0}
 																						precision={0}
 																						addonAfter={<span>克</span>}
+																						onKeyUp={(e)=>{
+																							// e.preventDefault();
+																							// console.log(e.keyCode);
+																							const allowCode = [40, 13, 38];
+																							if (!allowCode.includes(e.keyCode)){
+																								return false;
+																							}
+																							const listDATA = state.cf_info_list;
+																							if (listDATA.length === 1){
+																								return false;
+																							}
+																							// console.log(listDATA); // data
+																							// console.log(i); // index
+																							// console.log(document.getElementById('cf-ctrlbox').getElementsByClassName('cf-rows')[i+2].getElementsByClassName('weight-focus')[0].getElementsByTagName('input')[0].focus()); // dom
+																							if (e.keyCode === 40 || e.keyCode === 13){
+																								// keyCode: 40 = ↓
+																								if(i+1 === listDATA.length){
+																									// 最后一个 不允许下
+																									return false;
+																								}
+																								document.getElementById('cf-ctrlbox').getElementsByClassName('cf-rows')[i+2].getElementsByClassName('weight-focus')[0].getElementsByTagName('input')[0].select();
+																							}
+																							if (e.keyCode === 38){
+																								// keyCode: 38 = ↑
+																								if(i===0){
+																									// 最后一个 不允许上
+																									return false;
+																								}
+																								document.getElementById('cf-ctrlbox').getElementsByClassName('cf-rows')[i].getElementsByClassName('weight-focus')[0].getElementsByTagName('input')[0].select();
+																							}
+																						}}
 																					/>
 																					<Input
 																						value={v.price}
@@ -2518,7 +2810,6 @@ class Prescribe extends React.Component {
 																			);
 																		})
 																	}
-																	<Button block className='add-cf-rows' icon='plus' onClick={()=>this.addCfRows()}>增加一味药材</Button>
 																</div>
 															</div>
 														</div>
@@ -2716,6 +3007,11 @@ class Prescribe extends React.Component {
 													<div className="cy rex-cf">
 														<span className='rex-fl' style={{fontSize: 16, color: '#333'}}>理疗次数:</span>
 														<InputNumber className='rex-fl' style={{width: 160, marginLeft: 12}} value={state.ll_count} onChange={v=>this.setState({ll_count: v})} placeholder='输入理疗次数' maxLength={4} max={100} min={1} precision={0} />
+													</div>
+													<Placeholder height={15} />
+													<div className="cy rex-cf">
+														<span className='rex-fl' style={{fontSize: 16, color: '#333'}}>完成次数:</span>
+														<InputNumber className='rex-fl' style={{width: 160, marginLeft: 12}} value={state.ll_count_doing} readOnly maxLength={4} max={100} min={1} precision={0} />
 													</div>
 													<Placeholder height={15} />
 													<div className="cy rex-cf">
@@ -2924,8 +3220,23 @@ class Prescribe extends React.Component {
 													{/*state.sickBook_current_page === state.sickBook_total_page 代表最后一页 因为是倒序 实则是第一页*/}
 													{/*第一页没有药后反应*/}
 													{/*新建病历簿的时候也没药后反应*/}
+													{/*新增一页的时候需要药后反应*/}
 													{
 														state.sickBook_current_page === state.sickBook_total_page || state.sickBook_total_page===0?null:
+															<React.Fragment>
+																<Placeholder height={15} />
+																<div className="form-ctrls">
+																	<div className="label-box rex-cf">
+																		<span className="label-name rex-fl w154">药后反应: </span>
+																		<div className="label-forms rex-fl">
+																			<Input.TextArea style={{width: 410}} value={state.formQueryDatas.drug_reaction} onChange={(v)=>this.handleForm('drug_reaction', v.target.value)} placeholder='请输入患者药后反应信息' autosize={{ minRows: 2, maxRows: 6 }} />
+																		</div>
+																	</div>
+																</div>
+															</React.Fragment>
+													}
+													{
+														this.pid === null?null:
 															<React.Fragment>
 																<Placeholder height={15} />
 																<div className="form-ctrls">
