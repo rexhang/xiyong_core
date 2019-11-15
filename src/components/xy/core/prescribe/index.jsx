@@ -167,6 +167,12 @@ class Prescribe extends React.Component {
 		activeKey: '1',
 		activeKey2: '1',
 		cfList: [],
+		cfList_dates: [],
+		cfList_dates_cacheValue: undefined,
+		cfList_typings_cacheValue: {
+			value: undefined,
+			data: {}
+		},
 		cfList_total_page: 0,
 		/*处方内容是否保密*/
 		cf_private: true,
@@ -545,14 +551,31 @@ class Prescribe extends React.Component {
 				}
 			});
 		},
-		getcfList: (page=1, disease_record_id) => {
-			$http.get(API.prescriptionListGet, {
+		getcfList: (page=1, disease_record_id, date=null, typing=null) => {
+			let queryParams = {
 				pn: page,
 				cn: 100,
 				disease_record_id
-			}).then(res=>{
+			};
+			if (date){
+				queryParams.date = date;
+			}
+			// 判断类型
+			if (typing){
+				if (typing.mtype === 1){
+					// 接口根据type判断 门诊 or 理疗
+					queryParams.type = typing.type;
+				}
+				if (typing.mtype === 2){
+					// 接口根据type判断 中草药 成药等
+					queryParams.drug_group_type = typing.type;
+					queryParams.type = 0;
+				}
+			}
+			$http.get(API.prescriptionListGet, queryParams).then(res=>{
 				this.setState({
 					cfList: res.data.data.list,
+					cfList_dates: res.data.data.dates,
 					cfList_total_page: res.data.data.page.tc
 				});
 			});
@@ -1046,7 +1069,12 @@ class Prescribe extends React.Component {
 			fileList_videos: [],
 			sickBook_current_page: 1,
 			sickBook_total_page: 0,
-			activeKey: '1'
+			activeKey: '1',
+			cfList_dates_cacheValue: undefined,
+			cfList_typings_cacheValue: {
+				value: undefined,
+				data: {}
+			}
 		});
 		this.pid = null;
 		this.editSickBookId = null;
@@ -2470,6 +2498,60 @@ class Prescribe extends React.Component {
 										<TabPane tab="处方信息" key="2" className="tb-2">
 											<div name="w-800">
 												<Button icon='plus' onClick={()=>this.createCF()}>添加处方</Button>
+												{/*筛选器*/}
+												<div>
+													<Select
+														showSearch
+														placeholder='可根据日期查询'
+														optionFilterProp='label'
+														style={{width: 160, marginTop: 12}}
+														value={state.cfList_dates_cacheValue}
+														allowClear={true}
+														onChange={(date) => {
+															this.setState({
+																cfList_dates_cacheValue: date
+															});
+															this.dataCenter.getcfList(1, this.state.formQueryDatas.disease_record_id, date, this.state.cfList_typings_cacheValue.value?this.state.cfList_typings_cacheValue.data:null);
+														}}
+													>
+														{
+															state.cfList_dates.map((v, i)=>{
+																// 拼 音 码 -> GetJP || 拼音全码 -> GetQP || 混 拼 码 -> GetHP
+																const hunpinCode= window.Pinyin.GetJP(v);
+																return(
+																	<Option key={i} value={v} label={hunpinCode}>{v}</Option>
+																);
+															})
+														}
+													</Select>
+													<Select
+														showSearch
+														placeholder='可根据处方类型'
+														optionFilterProp='label'
+														style={{width: 160, marginTop: 12, marginLeft: 12}}
+														value={state.cfList_typings_cacheValue.value}
+														onChange={(typing, record) => {
+															const bind_data = record.props.bindvalue;
+															this.setState({
+																cfList_typings_cacheValue: {
+																	value: typing,
+																	data: bind_data
+																}
+															});
+															this.dataCenter.getcfList(1, this.state.formQueryDatas.disease_record_id, this.state.cfList_dates_cacheValue, bind_data);
+														}}
+													>
+														{
+															[{id: 0, mtype: 0, type: 0, name: '全部'}, {id: 1, mtype: 1, type: 1, name: '理疗'}, {id: 2, mtype: 1, type: 0, name: '门诊'}, {id: 3, mtype: 2, type: 0, name: '中草药'}, {id: 4, mtype: 2, type: 2, name: '成品药'}, {id: 5, mtype: 2, type: 5, name: '成药'},].map((v, i)=>{
+																// 拼 音 码 -> GetJP || 拼音全码 -> GetQP || 混 拼 码 -> GetHP
+																const hunpinCode= window.Pinyin.GetJP(v.name);
+																return(
+																	<Option key={v.id} value={v.id} bindvalue={v} label={hunpinCode}>{v.name}</Option>
+																);
+															})
+														}
+													</Select>
+												</div>
 												{
 													state.cfList.length>0?
 														<div className='rex-scroll-bar' style={{
@@ -2570,790 +2652,1126 @@ class Prescribe extends React.Component {
 									{
 										state.only_show === '100' || state.only_show === '0'?
 											<TabPane tab="中医药处方" key="1">
-												<div className="choice-content">
-													<div className="cy rex-cf">
-														<span className='rex-fl' style={{fontSize: 16, color: '#333'}}>采用成药:</span>
-														<Select
-															className='rex-fl'
-															allowClear
-															showSearch={true}
-															value={state.drug_group_list_id}
-															placeholder={'选择成药'}
-															optionFilterProp='label'
-															style={{ width: 160, textIndent: 0, marginLeft: 12 }}
-															onChange={(v)=>this.handleDrugGroupChange(v)}
-														>
-															{
-																state.drug_group_list.map(v=>{
-																	// 拼 音 码 -> GetJP || 拼音全码 -> GetQP || 混 拼 码 -> GetHP
-																	const hunpinCode= window.Pinyin.GetJP(v.name);
-																	return(
-																		<Option key={v.id} value={v.id} label={hunpinCode}>{v.name}</Option>
-																	);
-																})
-															}
-														</Select>
-														&nbsp;&nbsp;&nbsp;&nbsp;
-														<span className='rex-fl' style={{fontSize: 16, color: '#333'}}>采用成品药:</span>
-														<Select
-															className='rex-fl'
-															allowClear
-															showSearch={true}
-															value={state.drugData2_id}
-															placeholder={'选择成品药'}
-															optionFilterProp='label'
-															style={{ width: 160, textIndent: 0, marginLeft: 12 }}
-															onChange={(v)=>this.handleDrugGroup2Change(v)}
-														>
-															{
-																state.drugData2.map(v=>{
-																	// 拼 音 码 -> GetJP || 拼音全码 -> GetQP || 混 拼 码 -> GetHP
-																	const hunpinCode= window.Pinyin.GetJP(v.name);
-																	return(
-																		<Option key={v.id} value={v.id} label={hunpinCode}>{v.name}</Option>
-																	);
-																})
-															}
-														</Select>
-													</div>
-													<div className="DivFieldset1" style={{display: `${state.hide_cf_list?'none':'block'}`}}>
-														<div className="DivFieldset1_title">中药材成分表</div>
-														<div className="DivFieldset1_content" style={{width: 530}}>
-															<div className="rex-fctns">
-																<div className="cf-tools rex-scroll-bar" id='cf-ctrlbox'>
-																	<div className="cf-rows rex-cf">
-																		<span style={{
-																			float: 'left',
-																			width: 20,
-																			overflow: 'hidden',
-																			height: 32,
-																			display: 'block',
-																			lineHeight: '32px'
-																		}} />
-																		<Select
-																			className='sel rex-fl'
-																			showSearch={true}
-																			placeholder={'选择药材'}
-																			filterOption={false}
-																			style={{ width: 100, textIndent: 0 }}
-																			notFoundContent={'暂无此药材'}
-																			value={state.associate_id}
-																			onChange={(val)=>{
-																				if(!val){
-																					return false;
-																				}
-																				let _price = state.drug_list.find(_v=>_v.id===val).price;
-																				_price = _price * 1 / 1000;
-																				let _associate_weight = state.drug_list.find(_v=>_v.id===val).auto_weight;
-																				this.setState({
-																					associate_id: val,
-																					associate_price: _price,
-																					associate_weight: _associate_weight
-																				});
-																				// 添加一行
-																				window.setTimeout(()=>{
-																					this.addCfRows();
-																				}, 60);
-																			}}
-																			onSearch={(val)=>{
-																				$http.get(API.drugGet, {
-																					pn: 1,
-																					cn: Prescribe.getDrugPageSize,
-																					name: val
-																				}).then(res=>{
-																					if (res.data.code === 200) {
-																						// console.log(res.data.data.list);
-																						this.setState({
-																							drug_list: res.data.data.list
-																						});
+												<div className="choice-content rex-cf">
+													<div className="rex-fl">
+														<div className="cy rex-cf">
+															<span className='rex-fl' style={{fontSize: 16, color: '#333'}}>采用成药:</span>
+															<Select
+																className='rex-fl'
+																allowClear
+																showSearch={true}
+																value={state.drug_group_list_id}
+																placeholder={'选择成药'}
+																optionFilterProp='label'
+																style={{ width: 160, textIndent: 0, marginLeft: 12 }}
+																onChange={(v)=>this.handleDrugGroupChange(v)}
+															>
+																{
+																	state.drug_group_list.map(v=>{
+																		// 拼 音 码 -> GetJP || 拼音全码 -> GetQP || 混 拼 码 -> GetHP
+																		const hunpinCode= window.Pinyin.GetJP(v.name);
+																		return(
+																			<Option key={v.id} value={v.id} label={hunpinCode}>{v.name}</Option>
+																		);
+																	})
+																}
+															</Select>
+															&nbsp;&nbsp;&nbsp;&nbsp;
+															<span className='rex-fl' style={{fontSize: 16, color: '#333'}}>采用成品药:</span>
+															<Select
+																className='rex-fl'
+																allowClear
+																showSearch={true}
+																value={state.drugData2_id}
+																placeholder={'选择成品药'}
+																optionFilterProp='label'
+																style={{ width: 160, textIndent: 0, marginLeft: 12 }}
+																onChange={(v)=>this.handleDrugGroup2Change(v)}
+															>
+																{
+																	state.drugData2.map(v=>{
+																		// 拼 音 码 -> GetJP || 拼音全码 -> GetQP || 混 拼 码 -> GetHP
+																		const hunpinCode= window.Pinyin.GetJP(v.name);
+																		return(
+																			<Option key={v.id} value={v.id} label={hunpinCode}>{v.name}</Option>
+																		);
+																	})
+																}
+															</Select>
+														</div>
+														<div className="DivFieldset1" style={{display: `${state.hide_cf_list?'none':'block'}`}}>
+															<div className="DivFieldset1_title">中药材成分表</div>
+															<div className="DivFieldset1_content" style={{width: 530}}>
+																<div className="rex-fctns">
+																	<div className="cf-tools rex-scroll-bar" id='cf-ctrlbox'>
+																		<div className="cf-rows rex-cf">
+																			<span style={{
+																				float: 'left',
+																				width: 20,
+																				overflow: 'hidden',
+																				height: 32,
+																				display: 'block',
+																				lineHeight: '32px'
+																			}} />
+																			<Select
+																				className='sel rex-fl'
+																				showSearch={true}
+																				placeholder={'选择药材'}
+																				filterOption={false}
+																				style={{ width: 100, textIndent: 0 }}
+																				notFoundContent={'暂无此药材'}
+																				value={state.associate_id}
+																				onChange={(val)=>{
+																					if(!val){
+																						return false;
 																					}
-																				});
-																			}}
-																		>
-																			{
-																				state.drug_list.map(v=>{
-																					return (
-																						<Option key={v.id} value={v.id}>{v.name}</Option>
-																					);
-																				})
-																			}
-																		</Select>
-																		<Input
-																			value={state.associate_weight}
-																			className='weight-put rex-fl'
-																			placeholder='克数'
-																			style={{ width: 100, textIndent: 0 }}
-																			maxLength={4}
-																			max={1000}
-																			min={0}
-																			precision={0}
-																			addonAfter={<span>克</span>}
-																		/>
-																		<Input
-																			value={state.associate_price}
-																			readOnly
-																			style={{width: 124}}
-																			className='weight-put rex-fl'
-																			placeholder='单价'
-																			maxLength={4}
-																			max={1000}
-																			min={0}
-																			precision={0}
-																			addonAfter={<span>元/克</span>}
-																		/>
-																		<Button className='rex-fl' type='default' icon='plus' style={{marginLeft: 12}} onClick={() => this.addCfRows()}>添加</Button>
-																	</div>
-																	<hr className='cf_hr' />
-																	{
-																		state.cf_info_list.map((v, i)=>{
-																			return (
-																				<div key={i} className="cf-rows rex-cf">
-																					<span style={{
-																						float: 'left',
-																						width: 20,
-																						overflow: 'hidden',
-																						height: 32,
-																						display: 'block',
-																						lineHeight: '32px'
-																					}}>{i+1}.</span>
-																					<Select
-																						className='sel rex-fl'
-																						showSearch={true}
-																						placeholder={'选择药材'}
-																						filterOption={false}
-																						style={{ width: 100, textIndent: 0 }}
-																						notFoundContent={v.empty?'暂无此药材':null}
-																						value={v.drug_id}
-																						onChange={(val)=>{
-																							let cf_info_list = _.cloneDeep(this.state.cf_info_list);
-																							const _price = state.drug_list.find(_v=>_v.id===val).price;
-																							cf_info_list[i].drug_id = val; // drug_id
-																							cf_info_list[i].price = _price * 1 / 1000; // price
+																					let _price = state.drug_list.find(_v=>_v.id===val).price;
+																					_price = _price * 1 / 1000;
+																					let _associate_weight = state.drug_list.find(_v=>_v.id===val).auto_weight;
+																					this.setState({
+																						associate_id: val,
+																						associate_price: _price,
+																						associate_weight: _associate_weight
+																					});
+																					// 添加一行
+																					window.setTimeout(()=>{
+																						this.addCfRows();
+																					}, 60);
+																				}}
+																				onSearch={(val)=>{
+																					$http.get(API.drugGet, {
+																						pn: 1,
+																						cn: Prescribe.getDrugPageSize,
+																						name: val
+																					}).then(res=>{
+																						if (res.data.code === 200) {
+																							// console.log(res.data.data.list);
 																							this.setState({
-																								cf_info_list
+																								drug_list: res.data.data.list
 																							});
-																						}}
-																						onSearch={(val)=>{
-																							this.dataCenter.drugGet(1, val, true, i);
-																						}}
-																					>
-																						{
-																							state.drug_list.map(v=>{
-																								return (
-																									<Option key={v.id} value={v.id}>{v.name}</Option>
-																								);
-																							})
 																						}
-																					</Select>
-																					<Input
-																						value={v.weight}
-																						onChange={val=>{
-																							let cf_info_list = _.cloneDeep(this.state.cf_info_list);
-																							cf_info_list[i].weight = val.target.value;
-																							this.setState({
-																								cf_info_list
-																							});
-																						}}
-																						className='weight-put rex-fl weight-focus'
-																						placeholder='克数'
-																						style={{ width: 100, textIndent: 0 }}
-																						maxLength={4}
-																						max={1000}
-																						min={0}
-																						precision={0}
-																						addonAfter={<span>克</span>}
-																						onKeyUp={(e)=>{
-																							// e.preventDefault();
-																							// console.log(e.keyCode);
-																							const allowCode = [40, 13, 38];
-																							if (!allowCode.includes(e.keyCode)){
-																								return false;
+																					});
+																				}}
+																			>
+																				{
+																					state.drug_list.map(v=>{
+																						return (
+																							<Option key={v.id} value={v.id}>{v.name}</Option>
+																						);
+																					})
+																				}
+																			</Select>
+																			<Input
+																				value={state.associate_weight}
+																				className='weight-put rex-fl'
+																				placeholder='克数'
+																				style={{ width: 100, textIndent: 0 }}
+																				maxLength={4}
+																				max={1000}
+																				min={0}
+																				precision={0}
+																				addonAfter={<span>克</span>}
+																			/>
+																			<Input
+																				value={state.associate_price}
+																				readOnly
+																				style={{width: 124}}
+																				className='weight-put rex-fl'
+																				placeholder='单价'
+																				maxLength={4}
+																				max={1000}
+																				min={0}
+																				precision={0}
+																				addonAfter={<span>元/克</span>}
+																			/>
+																			<Button className='rex-fl' type='default' icon='plus' style={{marginLeft: 12}} onClick={() => this.addCfRows()}>添加</Button>
+																		</div>
+																		<hr className='cf_hr' />
+																		{
+																			state.cf_info_list.map((v, i)=>{
+																				return (
+																					<div key={i} className="cf-rows rex-cf">
+																						<span style={{
+																							float: 'left',
+																							width: 20,
+																							overflow: 'hidden',
+																							height: 32,
+																							display: 'block',
+																							lineHeight: '32px'
+																						}}>{i+1}.</span>
+																						<Select
+																							className='sel rex-fl'
+																							showSearch={true}
+																							placeholder={'选择药材'}
+																							filterOption={false}
+																							style={{ width: 100, textIndent: 0 }}
+																							notFoundContent={v.empty?'暂无此药材':null}
+																							value={v.drug_id}
+																							onChange={(val)=>{
+																								let cf_info_list = _.cloneDeep(this.state.cf_info_list);
+																								const _price = state.drug_list.find(_v=>_v.id===val).price;
+																								cf_info_list[i].drug_id = val; // drug_id
+																								cf_info_list[i].price = _price * 1 / 1000; // price
+																								this.setState({
+																									cf_info_list
+																								});
+																							}}
+																							onSearch={(val)=>{
+																								this.dataCenter.drugGet(1, val, true, i);
+																							}}
+																						>
+																							{
+																								state.drug_list.map(v=>{
+																									return (
+																										<Option key={v.id} value={v.id}>{v.name}</Option>
+																									);
+																								})
 																							}
-																							const listDATA = state.cf_info_list;
-																							if (listDATA.length === 1){
-																								return false;
-																							}
-																							// console.log(listDATA); // data
-																							// console.log(i); // index
-																							// console.log(document.getElementById('cf-ctrlbox').getElementsByClassName('cf-rows')[i+2].getElementsByClassName('weight-focus')[0].getElementsByTagName('input')[0].focus()); // dom
-																							if (e.keyCode === 40 || e.keyCode === 13){
-																								// keyCode: 40 = ↓
-																								if(i+1 === listDATA.length){
-																									// 最后一个 不允许下
+																						</Select>
+																						<Input
+																							value={v.weight}
+																							onChange={val=>{
+																								let cf_info_list = _.cloneDeep(this.state.cf_info_list);
+																								cf_info_list[i].weight = val.target.value;
+																								this.setState({
+																									cf_info_list
+																								});
+																							}}
+																							className='weight-put rex-fl weight-focus'
+																							placeholder='克数'
+																							style={{ width: 100, textIndent: 0 }}
+																							maxLength={4}
+																							max={1000}
+																							min={0}
+																							precision={0}
+																							addonAfter={<span>克</span>}
+																							onKeyUp={(e)=>{
+																								// e.preventDefault();
+																								// console.log(e.keyCode);
+																								const allowCode = [40, 13, 38];
+																								if (!allowCode.includes(e.keyCode)){
 																									return false;
 																								}
-																								document.getElementById('cf-ctrlbox').getElementsByClassName('cf-rows')[i+2].getElementsByClassName('weight-focus')[0].getElementsByTagName('input')[0].select();
-																							}
-																							if (e.keyCode === 38){
-																								// keyCode: 38 = ↑
-																								if(i===0){
-																									// 最后一个 不允许上
+																								const listDATA = state.cf_info_list;
+																								if (listDATA.length === 1){
 																									return false;
 																								}
-																								document.getElementById('cf-ctrlbox').getElementsByClassName('cf-rows')[i].getElementsByClassName('weight-focus')[0].getElementsByTagName('input')[0].select();
-																							}
-																						}}
-																					/>
-																					<Input
-																						value={v.price}
-																						readOnly
-																						style={{width: 124}}
-																						className='weight-put rex-fl'
-																						maxLength={4}
-																						max={1000}
-																						min={0}
-																						precision={0}
-																						addonAfter={<span>元/克</span>}
-																					/>
-																					<Button className='remove-cf-rows rex-fl' type='link' onClick={()=>this.removeCfRows(i)}>移除</Button>
+																								// console.log(listDATA); // data
+																								// console.log(i); // index
+																								// console.log(document.getElementById('cf-ctrlbox').getElementsByClassName('cf-rows')[i+2].getElementsByClassName('weight-focus')[0].getElementsByTagName('input')[0].focus()); // dom
+																								if (e.keyCode === 40 || e.keyCode === 13){
+																									// keyCode: 40 = ↓
+																									if(i+1 === listDATA.length){
+																										// 最后一个 不允许下
+																										return false;
+																									}
+																									document.getElementById('cf-ctrlbox').getElementsByClassName('cf-rows')[i+2].getElementsByClassName('weight-focus')[0].getElementsByTagName('input')[0].select();
+																								}
+																								if (e.keyCode === 38){
+																									// keyCode: 38 = ↑
+																									if(i===0){
+																										// 最后一个 不允许上
+																										return false;
+																									}
+																									document.getElementById('cf-ctrlbox').getElementsByClassName('cf-rows')[i].getElementsByClassName('weight-focus')[0].getElementsByTagName('input')[0].select();
+																								}
+																							}}
+																						/>
+																						<Input
+																							value={v.price}
+																							readOnly
+																							style={{width: 124}}
+																							className='weight-put rex-fl'
+																							maxLength={4}
+																							max={1000}
+																							min={0}
+																							precision={0}
+																							addonAfter={<span>元/克</span>}
+																						/>
+																						<Button className='remove-cf-rows rex-fl' type='link' onClick={()=>this.removeCfRows(i)}>移除</Button>
+																					</div>
+																				);
+																			})
+																		}
+																	</div>
+																</div>
+															</div>
+														</div>
+														<Placeholder height={15} />
+														<div className='cf-list-unit'>
+															<span className='names'>是否保密处方:</span>
+															<Switch checkedChildren="是" unCheckedChildren="否" checked={state.cf_private} onChange={(v)=>this.setState({cf_private: v})} />
+														</div>
+														<Placeholder height={15} />
+														<div className='cf-list-unit'>
+															<span className='names'>处方药物类型:</span>
+															<Radio.Group onChange={(e)=>this.handleMeTypeChange(e)} value={state.me_type}>
+																<Radio value={'0'}>草药</Radio>
+																<Radio value={'5'}>成药</Radio>
+																<Radio value={'2'}>成品药</Radio>
+															</Radio.Group>
+														</div>
+														<Placeholder height={15} />
+														<div className='cf-list-unit'>
+															<span className='names'>处方服用方式:</span>
+															<Select
+																className='sel rex-fl'
+																value={state.drinkStyle_id}
+																placeholder={'选择处方服用方式'}
+																showSearch
+																optionFilterProp='label'
+																style={{ width: 160, textIndent: 0 }}
+																onChange={(v)=>this.setState({drinkStyle_id: v})}
+															>
+																{
+																	state.drinkStyle.map(v=>{
+																		// 拼 音 码 -> GetJP || 拼音全码 -> GetQP || 混 拼 码 -> GetHP
+																		const hunpinCode= window.Pinyin.GetJP(v.name);
+																		return(
+																			<Option key={v.id} value={v.id} label={hunpinCode}>{v.name}</Option>
+																		);
+																	})
+																}
+															</Select>
+														</div>
+														<Placeholder height={15} />
+														<div className='cf-list-unit'>
+															<span className='names'>处方备注信息:</span>
+															<Input style={{width: 160}} value={state.cf_remark} onChange={e=>this.setState({cf_remark: e.target.value})} placeholder='输入处方备注信息' />
+														</div>
+														<Placeholder height={15} />
+														<div className='cf-list-unit'>
+															<span className='names'>处方付数设置:</span>
+															<InputNumber style={{width: 160}} value={state.cf_nums} onChange={e=>this.setState({cf_nums: e})} placeholder='输入处方付数' maxLength={4} max={100} min={1} precision={0} />
+														</div>
+														{
+															state.drugData2_id !== undefined && state.drugData2_id !== null?
+																<React.Fragment>
+																	<Placeholder height={15} />
+																	<div className='cf-list-unit'>
+																		<span className='names'>处方天数设置:</span>
+																		<InputNumber style={{width: 160}} value={state.cf_days} onChange={e=>this.setState({cf_days: e})} placeholder='输入处方天数' maxLength={4} max={100} min={1} precision={0} />
+																	</div>
+																</React.Fragment>:null
+														}
+														<Placeholder height={15} />
+														<div className='cf-list-unit'>
+															<span className='names'>处方折扣信息:</span>
+															<Select
+																className='sel rex-fl'
+																showSearch
+																optionFilterProp='label'
+																placeholder={'选择处方折扣'}
+																value={state.coupon_data_id}
+																style={{ width: 160, textIndent: 0 }}
+																notFoundContent={false?<Spin size="small" />:null}
+																onChange={(v)=>this.setState({coupon_data_id: v})}
+															>
+																{
+																	state.coupon_data.map(v=>{
+																		return (
+																			<Option key={v.value} value={v.value} label={v.label}>{v.label}</Option>
+																		);
+																	})
+																}
+															</Select>
+														</div>
+														<Placeholder height={15} />
+														<div className='cf-list-unit'>
+															<span className='names'>处方单价信息:</span>
+															<Input
+																className='sel rex-fl'
+																value={'￥'+unit_money}
+																style={{ width: 160, textIndent: 0 }}
+																readOnly
+															/>
+														</div>
+														<Placeholder height={15} />
+														<div className='cf-list-unit'>
+															<span className='names'>处方总价信息:</span>
+															<Input
+																className='sel rex-fl'
+																value={'￥'+real_money}
+																style={{ width: 160, textIndent: 0 }}
+																readOnly
+															/>
+														</div>
+														{
+															state.me_type === '0' || state.me_type === 0?
+																<React.Fragment>
+																	<Placeholder height={15} />
+																	<div className='cf-list-unit'>
+																		<span className='names'>药材种类数目:</span>
+																		<Input
+																			className='sel rex-fl'
+																			value={total_drugs+'种'}
+																			style={{ width: 160, textIndent: 0 }}
+																			readOnly
+																		/>
+																	</div>
+																</React.Fragment>:null
+														}
+														<Placeholder height={15} />
+														<Button icon='save' disabled={state.status === '20' || state.status === 20 || state.status === '30' || state.status === 30} onClick={()=>this.saveCfContent()}>{state.status === '20' || state.status === 20?'已支付':state.status === '30' || state.status === 30?'已退款':'保存/修改'}</Button>
+													</div>
+													<div className="rex-fl" style={{marginLeft: 44}}>
+														{
+															state.formQueryDatas.dates.length>0?
+																<div>
+																	<div className="form-ctrls">
+																		<div className="label-box rex-cf align-center">
+																			<span className="label-name rex-fl w154" style={{textAlign: 'left', width: 118}}>就诊日期关联查询: </span>
+																			<div className="label-forms rex-fl">
+																				<Select
+																					showSearch
+																					placeholder='可根据就诊日期查询'
+																					optionFilterProp='label'
+																					style={{width: 410}}
+																					value={state.formQueryDatas.current_date}
+																					onChange={(date) => {
+																						this.dataCenter.getdiseaserecordlistPages(this.state.sickBook_current_page, this.editSickBookId, false, date);
+																					}}
+																				>
+																					{
+																						state.formQueryDatas.dates.map((v, i)=>{
+																							// 拼 音 码 -> GetJP || 拼音全码 -> GetQP || 混 拼 码 -> GetHP
+																							const hunpinCode= window.Pinyin.GetJP(v);
+																							return(
+																								<Option key={i} value={v} label={hunpinCode}>{v}</Option>
+																							);
+																						})
+																					}
+																				</Select>
+																			</div>
+																		</div>
+																	</div>
+																</div>:null
+														}
+														<div className="DivFieldset1">
+															<div className="DivFieldset1_title">基本信息</div>
+															<div className="DivFieldset1_content">
+																<div className="rex-fctns">
+																	<div className="form-ctrls">
+																		<div className="label-box rex-cf">
+																			<span className="label-name rex-fl w154">患者主诉: </span>
+																			<div className="label-forms rex-fl">
+																				<Input.TextArea style={{width: 410}} value={state.formQueryDatas.patient_desc} onChange={(v)=>this.handleForm('patient_desc', v.target.value)} placeholder='请输入患者主诉信息' autosize={{ minRows: 2, maxRows: 6 }} />
+																			</div>
+																		</div>
+																	</div>
+																	<Placeholder height={15} />
+																	<div className="form-ctrls">
+																		<div className="label-box rex-cf">
+																			<span className="label-name rex-fl w154">现病史: </span>
+																			<div className="label-forms rex-fl">
+																				<Input.TextArea style={{width: 410}} value={state.formQueryDatas.disease_history} onChange={(v)=>this.handleForm('disease_history', v.target.value)} placeholder='请输入患者现病史信息' autosize={{ minRows: 2, maxRows: 6 }} />
+																			</div>
+																		</div>
+																	</div>
+																	<Placeholder height={15} />
+																	<div className="form-ctrls">
+																		<div className="label-box rex-cf">
+																			<span className="label-name rex-fl w154">既往史: </span>
+																			<div className="label-forms rex-fl">
+																				<Input.TextArea style={{width: 410}} value={state.formQueryDatas.disease_past} onChange={(v)=>this.handleForm('disease_past', v.target.value)} placeholder='请输入患者既往史信息' autosize={{ minRows: 2, maxRows: 6 }} />
+																			</div>
+																		</div>
+																	</div>
+																	<Placeholder height={15} />
+																	<div className="form-ctrls">
+																		<div className="label-box rex-cf">
+																			<span className="label-name rex-fl w154">家族史: </span>
+																			<div className="label-forms rex-fl">
+																				<Input.TextArea style={{width: 410}} value={state.formQueryDatas.disease_family} onChange={(v)=>this.handleForm('disease_family', v.target.value)} placeholder='请输入患者家族史信息' autosize={{ minRows: 2, maxRows: 6 }} />
+																			</div>
+																		</div>
+																	</div>
+																	<Placeholder height={15} />
+																	<div className="form-ctrls">
+																		<div className="label-box rex-cf">
+																			<span className="label-name rex-fl w154">实验室检查: </span>
+																			<div className="label-forms rex-fl">
+																				<Input.TextArea style={{width: 410}} value={state.formQueryDatas.inspection_result} onChange={(v)=>this.handleForm('inspection_result', v.target.value)} placeholder='请输入患者实验室检查信息' autosize={{ minRows: 2, maxRows: 6 }} />
+																			</div>
+																		</div>
+																	</div>
+																	<Placeholder height={15} />
+																	<div className="form-ctrls">
+																		<div className="label-box rex-cf align-center">
+																			<span className="label-name rex-fl w154">治法治则: </span>
+																			<div className="label-forms rex-fl">
+																				<Select
+																					showSearch
+																					placeholder='请选择治法治则'
+																					optionFilterProp='label'
+																					style={{width: 410}}
+																					value={state.formQueryDatas.treatment_id}
+																					onChange={(v) => this.handleForm('treatment_id', v)}
+																				>
+																					{
+																						state.treatment_list.map(v=>{
+																							// 拼 音 码 -> GetJP || 拼音全码 -> GetQP || 混 拼 码 -> GetHP
+																							const hunpinCode= window.Pinyin.GetJP(v.name);
+																							return(
+																								<Option key={v.id} value={v.id} label={hunpinCode}>{v.name}</Option>
+																							);
+																						})
+																					}
+																				</Select>
+																			</div>
+																		</div>
+																	</div>
+																	<Placeholder height={15} />
+																	<div className="form-ctrls">
+																		<div className="label-box rex-cf align-center">
+																			<span className="label-name rex-fl w154">中医诊断: </span>
+																			<div className="label-forms rex-fl">
+																				<Select
+																					showSearch
+																					placeholder='请选择中医诊断'
+																					optionFilterProp='label'
+																					style={{width: 410}}
+																					value={state.formQueryDatas.diagnosis_id}
+																					onChange={(v) => this.handleForm('diagnosis_id', v)}
+																				>
+																					{
+																						state.diagnosis.map(v=>{
+																							// 拼 音 码 -> GetJP || 拼音全码 -> GetQP || 混 拼 码 -> GetHP
+																							const hunpinCode= window.Pinyin.GetJP(v.name);
+																							return(
+																								<Option key={v.id} value={v.id} label={hunpinCode}>{v.name}</Option>
+																							);
+																						})
+																					}
+																				</Select>
+																			</div>
+																		</div>
+																	</div>
+																	<Placeholder height={15} />
+																	<div className="form-ctrls">
+																		<div className="label-box rex-cf align-center">
+																			<span className="label-name rex-fl w154">中医证型: </span>
+																			<div className="label-forms rex-fl">
+																				<Select
+																					showSearch
+																					placeholder='请选择中医证型'
+																					optionFilterProp='label'
+																					style={{width: 410}}
+																					value={state.formQueryDatas.tcm_id}
+																					onChange={(v) => this.handleForm('tcm_id', v)}
+																				>
+																					{
+																						state.tcm_list.map(v=>{
+																							// 拼 音 码 -> GetJP || 拼音全码 -> GetQP || 混 拼 码 -> GetHP
+																							const hunpinCode= window.Pinyin.GetJP(v.name);
+																							return(
+																								<Option key={v.id} value={v.id} label={hunpinCode}>{v.name}</Option>
+																							);
+																						})
+																					}
+																				</Select>
+																			</div>
+																		</div>
+																	</div>
+																	<Placeholder height={15} />
+																	<div className="form-ctrls">
+																		<div className="label-box rex-cf align-center">
+																			<span className="label-name rex-fl w154">西医诊断: </span>
+																			<div className="label-forms rex-fl">
+																				<Select
+																					showSearch
+																					placeholder='请选择西医诊断'
+																					optionFilterProp='label'
+																					style={{width: 410}}
+																					value={state.formQueryDatas.western_diagnosis_id}
+																					onChange={(v) => this.handleForm('western_diagnosis_id', v)}
+																				>
+																					{
+																						state.western_list.map(v=>{
+																							// 拼 音 码 -> GetJP || 拼音全码 -> GetQP || 混 拼 码 -> GetHP
+																							const hunpinCode= window.Pinyin.GetJP(v.name);
+																							return(
+																								<Option key={v.id} value={v.id} label={hunpinCode}>{v.name}</Option>
+																							);
+																						})
+																					}
+																				</Select>
+																			</div>
+																		</div>
+																	</div>
+																	<Placeholder height={15} />
+																	<div className="form-ctrls">
+																		<div className="label-box rex-cf">
+																			<span className="label-name rex-fl w154">医嘱: </span>
+																			<div className="label-forms rex-fl">
+																				<Input.TextArea style={{width: 410}} value={state.formQueryDatas.advise} onChange={(v)=>this.handleForm('advise', v.target.value)} placeholder='请输入患者医嘱信息' autosize={{ minRows: 2, maxRows: 6 }} />
+																			</div>
+																		</div>
+																	</div>
+																	{/*state.sickBook_current_page === state.sickBook_total_page 代表最后一页 因为是倒序 实则是第一页*/}
+																	{/*第一页没有药后反应*/}
+																	{/*新建病历簿的时候也没药后反应*/}
+																	{/*新增一页的时候需要药后反应*/}
+																	{
+																		state.sickBook_current_page === state.sickBook_total_page || state.sickBook_total_page===0?null:
+																			<React.Fragment>
+																				<Placeholder height={15} />
+																				<div className="form-ctrls">
+																					<div className="label-box rex-cf">
+																						<span className="label-name rex-fl w154">药后反应: </span>
+																						<div className="label-forms rex-fl">
+																							<Input.TextArea style={{width: 410}} value={state.formQueryDatas.drug_reaction} onChange={(v)=>this.handleForm('drug_reaction', v.target.value)} placeholder='请输入患者药后反应信息' autosize={{ minRows: 2, maxRows: 6 }} />
+																						</div>
+																					</div>
 																				</div>
-																			);
-																		})
+																			</React.Fragment>
 																	}
+																	{
+																		this.pid === null?null:
+																			<React.Fragment>
+																				<Placeholder height={15} />
+																				<div className="form-ctrls">
+																					<div className="label-box rex-cf">
+																						<span className="label-name rex-fl w154">药后反应: </span>
+																						<div className="label-forms rex-fl">
+																							<Input.TextArea style={{width: 410}} value={state.formQueryDatas.drug_reaction} onChange={(v)=>this.handleForm('drug_reaction', v.target.value)} placeholder='请输入患者药后反应信息' autosize={{ minRows: 2, maxRows: 6 }} />
+																						</div>
+																					</div>
+																				</div>
+																			</React.Fragment>
+																	}
+																	<Placeholder height={15} />
+																	<div className="form-ctrls">
+																		<div className="label-box rex-cf">
+																			<span className="label-name rex-fl w154">图像资料: </span>
+																			<div className="label-forms rex-fl" style={{width: 410}}>
+																				<Upload
+																					action={API.uploadFile}
+																					accept={'image/*'}
+																					listType="picture-card"
+																					fileList={state.fileList}
+																					name='file_name'
+																					data={{type: 'image'}}
+																					headers={{
+																						'Http-Authorization': LocalStorage.getObject('xy_userinfo').token || 'token not found'
+																					}}
+																					onPreview={async (file)=>{
+																						console.log(file);
+																						this.setState({
+																							previewImage: file.url || await this.getBase64(file.originFileObj),
+																							previewVisible: true,
+																						});
+																					}}
+																					onChange={(info)=>{
+																						this.setState({ fileList: [...info.fileList] });
+																						if (info.file.status !== 'uploading') {
+																							// console.log(info.file, info.fileList);
+																						}
+																						if (info.file.status === 'done') {
+																							message.success(`${info.file.name} 文件上传成功~`, 1);
+																							const res = info.file.response;
+																							if (res.code === 200) {
+																								/*const _fileURL = res.data.file_url;
+																								// 保存新建数据中的文件地址
+																								console.log(_fileURL);*/
+																							} else {
+																								// 接口异常 || 错误
+																								message.error(res.msg);
+																							}
+																						} else if (info.file.status === 'error') {
+																							message.error(`${info.file.name} 文件上传失败~`);
+																						}
+																					}}
+																				>
+																					{state.fileList.length >= 5 ? null : <div>
+																						<Icon type="plus" />
+																						<div className="ant-upload-text">上传图像</div>
+																					</div>}
+																				</Upload>
+																				<Button icon='camera' onClick={()=>this.openCamera()} title='拍摄照片'>拍摄照片</Button>
+																			</div>
+																		</div>
+																	</div>
+																	<Placeholder height={15} />
+																	<div className="form-ctrls">
+																		<div className="label-box rex-cf">
+																			<span className="label-name rex-fl w154">视频资料: </span>
+																			<div className="label-forms rex-fl">
+																				<Upload
+																					action={API.uploadFile}
+																					accept={'video/mp4'}
+																					fileList={state.fileList_videos}
+																					name='file_name'
+																					data={{type: 'video'}}
+																					headers={{
+																						'Http-Authorization': LocalStorage.getObject('xy_userinfo').token || 'token not found'
+																					}}
+																					onPreview={async (file)=>{
+																						console.log(file);
+																						this.setState({
+																							previewVideo: true,
+																							videoPreviewUrl: file.url || file.response.data.file_url
+																						});
+																					}}
+																					onChange={(info)=>{
+																						this.setState({ fileList_videos: [...info.fileList] });
+																						if (info.file.status !== 'uploading') {
+																							// console.log(info.file, info.fileList_videos);
+																						}
+																						if (info.file.status === 'done') {
+																							message.success(`${info.file.name} 文件上传成功~`, 1);
+																							const res = info.file.response;
+																							if (res.code === 200) {
+																								const _fileURL = res.data.file_url;
+																								// 保存新建数据中的文件地址
+																								console.log(_fileURL);
+																							} else {
+																								// 接口异常 || 错误
+																								message.error(res.msg);
+																							}
+																						} else if (info.file.status === 'error') {
+																							message.error(`${info.file.name} 文件上传失败~`);
+																						}
+																					}}
+																				>
+																					{state.fileList_videos.length >= 5 ? null : <Button icon='plus'>
+																						上传视频
+																					</Button>}
+																				</Upload>
+																			</div>
+																		</div>
+																	</div>
 																</div>
 															</div>
 														</div>
 													</div>
-													<Placeholder height={15} />
-													<div className='cf-list-unit'>
-														<span className='names'>是否保密处方:</span>
-														<Switch checkedChildren="是" unCheckedChildren="否" checked={state.cf_private} onChange={(v)=>this.setState({cf_private: v})} />
-													</div>
-													<Placeholder height={15} />
-													<div className='cf-list-unit'>
-														<span className='names'>处方药物类型:</span>
-														<Radio.Group onChange={(e)=>this.handleMeTypeChange(e)} value={state.me_type}>
-															<Radio value={'0'}>草药</Radio>
-															<Radio value={'5'}>成药</Radio>
-															<Radio value={'2'}>成品药</Radio>
-														</Radio.Group>
-													</div>
-													<Placeholder height={15} />
-													<div className='cf-list-unit'>
-														<span className='names'>处方服用方式:</span>
-														<Select
-															className='sel rex-fl'
-															value={state.drinkStyle_id}
-															placeholder={'选择处方服用方式'}
-															showSearch
-															optionFilterProp='label'
-															style={{ width: 160, textIndent: 0 }}
-															onChange={(v)=>this.setState({drinkStyle_id: v})}
-														>
-															{
-																state.drinkStyle.map(v=>{
-																	// 拼 音 码 -> GetJP || 拼音全码 -> GetQP || 混 拼 码 -> GetHP
-																	const hunpinCode= window.Pinyin.GetJP(v.name);
-																	return(
-																		<Option key={v.id} value={v.id} label={hunpinCode}>{v.name}</Option>
-																	);
-																})
-															}
-														</Select>
-													</div>
-													<Placeholder height={15} />
-													<div className='cf-list-unit'>
-														<span className='names'>处方备注信息:</span>
-														<Input style={{width: 160}} value={state.cf_remark} onChange={e=>this.setState({cf_remark: e.target.value})} placeholder='输入处方备注信息' />
-													</div>
-													<Placeholder height={15} />
-													<div className='cf-list-unit'>
-														<span className='names'>处方付数设置:</span>
-														<InputNumber style={{width: 160}} value={state.cf_nums} onChange={e=>this.setState({cf_nums: e})} placeholder='输入处方付数' maxLength={4} max={100} min={1} precision={0} />
-													</div>
-													{
-														state.drugData2_id !== undefined && state.drugData2_id !== null?
-															<React.Fragment>
-																<Placeholder height={15} />
-																<div className='cf-list-unit'>
-																	<span className='names'>处方天数设置:</span>
-																	<InputNumber style={{width: 160}} value={state.cf_days} onChange={e=>this.setState({cf_days: e})} placeholder='输入处方天数' maxLength={4} max={100} min={1} precision={0} />
-																</div>
-															</React.Fragment>:null
-													}
-													<Placeholder height={15} />
-													<div className='cf-list-unit'>
-														<span className='names'>处方折扣信息:</span>
-														<Select
-															className='sel rex-fl'
-															showSearch
-															optionFilterProp='label'
-															placeholder={'选择处方折扣'}
-															value={state.coupon_data_id}
-															style={{ width: 160, textIndent: 0 }}
-															notFoundContent={false?<Spin size="small" />:null}
-															onChange={(v)=>this.setState({coupon_data_id: v})}
-														>
-															{
-																state.coupon_data.map(v=>{
-																	return (
-																		<Option key={v.value} value={v.value} label={v.label}>{v.label}</Option>
-																	);
-																})
-															}
-														</Select>
-													</div>
-													<Placeholder height={15} />
-													<div className='cf-list-unit'>
-														<span className='names'>处方单价信息:</span>
-														<Input
-															className='sel rex-fl'
-															value={'￥'+unit_money}
-															style={{ width: 160, textIndent: 0 }}
-															readOnly
-														/>
-													</div>
-													<Placeholder height={15} />
-													<div className='cf-list-unit'>
-														<span className='names'>处方总价信息:</span>
-														<Input
-															className='sel rex-fl'
-															value={'￥'+real_money}
-															style={{ width: 160, textIndent: 0 }}
-															readOnly
-														/>
-													</div>
-													{
-														state.me_type === '0' || state.me_type === 0?
-															<React.Fragment>
-																<Placeholder height={15} />
-																<div className='cf-list-unit'>
-																	<span className='names'>药材种类数目:</span>
-																	<Input
-																		className='sel rex-fl'
-																		value={total_drugs+'种'}
-																		style={{ width: 160, textIndent: 0 }}
-																		readOnly
-																	/>
-																</div>
-															</React.Fragment>:null
-													}
-													<Placeholder height={15} />
-													<Button icon='save' disabled={state.status === '20' || state.status === 20 || state.status === '30' || state.status === 30} onClick={()=>this.saveCfContent()}>{state.status === '20' || state.status === 20?'已支付':state.status === '30' || state.status === 30?'已退款':'保存/修改'}</Button>
 												</div>
 											</TabPane>:null
 									}
 									{
 										state.only_show === '100' || state.only_show === '1'?
 											<TabPane tab="理疗处方" key="2">
-												<div className="choice-content">
-													<div className="cy rex-cf">
-														<span className='rex-fl' style={{fontSize: 16, color: '#333'}}>理疗穴位:</span>
-														<Select
-															mode="multiple"
-															className='rex-fl'
-															allowClear
-															showSearch={true}
-															value={state.xuewei_list_id}
-															placeholder={'选择穴位'}
-															filterOption={false}
-															optionFilterProp='label'
-															style={{ width: 400, textIndent: 0, marginLeft: 12 }}
-															onChange={(v)=>this.handleXueweiGroupChange(v)}
-															onSearch={(v)=> {
-																this.dataCenter.getXuewei(v);
-															}}
-															notFoundContent={null}
-															defaultActiveFirstOption={false}
-															showArrow={true}
-														>
-															{
-																state.xuewei_list.map(v=>{
-																	return (
-																		<Option key={v.id} value={v.id} label={v.name}>{v.name}</Option>
-																	);
-																})
-															}
-														</Select>
-													</div>
-													<Placeholder height={15} />
-													<div className="cy rex-cf">
-														<span className='rex-fl' style={{fontSize: 16, color: '#333'}}>理疗项目:</span>
-														<Select
-															className='rex-fl'
-															allowClear
-															showSearch={true}
-															value={state.ll_list_id}
-															placeholder={'选择理疗项目'}
-															filterOption={true}
-															optionFilterProp='label'
-															style={{ width: 400, textIndent: 0, marginLeft: 12 }}
-															onChange={(v)=>{
-																let setOBJ = {
-																	ll_list_id: v,
-																	ll_unit_price: 0
-																};
-																if (v) {
-																	setOBJ.ll_unit_price = state.ll_list.find(val=>val.id === v).price;
+												<div className="choice-content rex-cf">
+													<div className="rex-fl">
+														<div className="cy rex-cf">
+															<span className='rex-fl' style={{fontSize: 16, color: '#333'}}>理疗穴位:</span>
+															<Select
+																mode="multiple"
+																className='rex-fl'
+																allowClear
+																showSearch={true}
+																value={state.xuewei_list_id}
+																placeholder={'选择穴位'}
+																filterOption={false}
+																optionFilterProp='label'
+																style={{ width: 400, textIndent: 0, marginLeft: 12 }}
+																onChange={(v)=>this.handleXueweiGroupChange(v)}
+																onSearch={(v)=> {
+																	this.dataCenter.getXuewei(v);
+																}}
+																notFoundContent={null}
+																defaultActiveFirstOption={false}
+																showArrow={true}
+															>
+																{
+																	state.xuewei_list.map(v=>{
+																		return (
+																			<Option key={v.id} value={v.id} label={v.name}>{v.name}</Option>
+																		);
+																	})
 																}
-																this.setState(setOBJ);
-															}}
-															notFoundContent={null}
-															defaultActiveFirstOption={false}
-															showArrow={true}
-														>
-															{
-																state.ll_list.map(v=>{
-																	// 拼 音 码 -> GetJP || 拼音全码 -> GetQP || 混 拼 码 -> GetHP
-																	const hunpinCode= window.Pinyin.GetJP(v.name);
-																	return(
-																		<Option key={v.id} value={v.id} label={hunpinCode}>{v.name}({v.price}元/每次)</Option>
-																	);
-																})
-															}
-														</Select>
+															</Select>
+														</div>
+														<Placeholder height={15} />
+														<div className="cy rex-cf">
+															<span className='rex-fl' style={{fontSize: 16, color: '#333'}}>理疗项目:</span>
+															<Select
+																className='rex-fl'
+																allowClear
+																showSearch={true}
+																value={state.ll_list_id}
+																placeholder={'选择理疗项目'}
+																filterOption={true}
+																optionFilterProp='label'
+																style={{ width: 400, textIndent: 0, marginLeft: 12 }}
+																onChange={(v)=>{
+																	let setOBJ = {
+																		ll_list_id: v,
+																		ll_unit_price: 0
+																	};
+																	if (v) {
+																		setOBJ.ll_unit_price = state.ll_list.find(val=>val.id === v).price;
+																	}
+																	this.setState(setOBJ);
+																}}
+																notFoundContent={null}
+																defaultActiveFirstOption={false}
+																showArrow={true}
+															>
+																{
+																	state.ll_list.map(v=>{
+																		// 拼 音 码 -> GetJP || 拼音全码 -> GetQP || 混 拼 码 -> GetHP
+																		const hunpinCode= window.Pinyin.GetJP(v.name);
+																		return(
+																			<Option key={v.id} value={v.id} label={hunpinCode}>{v.name}({v.price}元/每次)</Option>
+																		);
+																	})
+																}
+															</Select>
+														</div>
+														<Placeholder height={15} />
+														<div className="cy rex-cf">
+															<span className='rex-fl' style={{fontSize: 16, color: '#333'}}>理疗次数:</span>
+															<InputNumber className='rex-fl' style={{width: 160, marginLeft: 12}} value={state.ll_count} onChange={v=>this.setState({ll_count: v})} placeholder='输入理疗次数' maxLength={4} max={100} min={1} precision={0} />
+														</div>
+														<Placeholder height={15} />
+														<div className="cy rex-cf">
+															<span className='rex-fl' style={{fontSize: 16, color: '#333'}}>完成次数:</span>
+															<InputNumber className='rex-fl' style={{width: 160, marginLeft: 12}} value={state.ll_count_doing} readOnly maxLength={4} max={100} min={1} precision={0} />
+														</div>
+														<Placeholder height={15} />
+														<div className="cy rex-cf">
+															<span className='rex-fl' style={{fontSize: 16, color: '#333'}}>理疗价格:</span>
+															<InputNumber className='rex-fl' style={{width: 160, marginLeft: 12}} value={state.ll_unit_price * 1 * (state.ll_count * 1)+'元'} readOnly />
+														</div>
+														<Placeholder height={15} />
+														<Button icon='save' disabled={state.status === '20' || state.status === 20 || state.status === '30' || state.status === 30} onClick={()=>this.saveLL()}>{state.status === '20' || state.status === 20?'已支付':state.status === '30' || state.status === 30?'已退款':'保存/修改'}</Button>
 													</div>
-													<Placeholder height={15} />
-													<div className="cy rex-cf">
-														<span className='rex-fl' style={{fontSize: 16, color: '#333'}}>理疗次数:</span>
-														<InputNumber className='rex-fl' style={{width: 160, marginLeft: 12}} value={state.ll_count} onChange={v=>this.setState({ll_count: v})} placeholder='输入理疗次数' maxLength={4} max={100} min={1} precision={0} />
+													<div className="rex-fl" style={{marginLeft: 44}}>
+														{
+															state.formQueryDatas.dates.length>0?
+																<div>
+																	<div className="form-ctrls">
+																		<div className="label-box rex-cf align-center">
+																			<span className="label-name rex-fl w154" style={{textAlign: 'left', width: 118}}>就诊日期关联查询: </span>
+																			<div className="label-forms rex-fl">
+																				<Select
+																					showSearch
+																					placeholder='可根据就诊日期查询'
+																					optionFilterProp='label'
+																					style={{width: 410}}
+																					value={state.formQueryDatas.current_date}
+																					onChange={(date) => {
+																						this.dataCenter.getdiseaserecordlistPages(this.state.sickBook_current_page, this.editSickBookId, false, date);
+																					}}
+																				>
+																					{
+																						state.formQueryDatas.dates.map((v, i)=>{
+																							// 拼 音 码 -> GetJP || 拼音全码 -> GetQP || 混 拼 码 -> GetHP
+																							const hunpinCode= window.Pinyin.GetJP(v);
+																							return(
+																								<Option key={i} value={v} label={hunpinCode}>{v}</Option>
+																							);
+																						})
+																					}
+																				</Select>
+																			</div>
+																		</div>
+																	</div>
+																</div>:null
+														}
+														<div className="DivFieldset1">
+															<div className="DivFieldset1_title">基本信息</div>
+															<div className="DivFieldset1_content">
+																<div className="rex-fctns">
+																	<div className="form-ctrls">
+																		<div className="label-box rex-cf">
+																			<span className="label-name rex-fl w154">患者主诉: </span>
+																			<div className="label-forms rex-fl">
+																				<Input.TextArea style={{width: 410}} value={state.formQueryDatas.patient_desc} onChange={(v)=>this.handleForm('patient_desc', v.target.value)} placeholder='请输入患者主诉信息' autosize={{ minRows: 2, maxRows: 6 }} />
+																			</div>
+																		</div>
+																	</div>
+																	<Placeholder height={15} />
+																	<div className="form-ctrls">
+																		<div className="label-box rex-cf">
+																			<span className="label-name rex-fl w154">现病史: </span>
+																			<div className="label-forms rex-fl">
+																				<Input.TextArea style={{width: 410}} value={state.formQueryDatas.disease_history} onChange={(v)=>this.handleForm('disease_history', v.target.value)} placeholder='请输入患者现病史信息' autosize={{ minRows: 2, maxRows: 6 }} />
+																			</div>
+																		</div>
+																	</div>
+																	<Placeholder height={15} />
+																	<div className="form-ctrls">
+																		<div className="label-box rex-cf">
+																			<span className="label-name rex-fl w154">既往史: </span>
+																			<div className="label-forms rex-fl">
+																				<Input.TextArea style={{width: 410}} value={state.formQueryDatas.disease_past} onChange={(v)=>this.handleForm('disease_past', v.target.value)} placeholder='请输入患者既往史信息' autosize={{ minRows: 2, maxRows: 6 }} />
+																			</div>
+																		</div>
+																	</div>
+																	<Placeholder height={15} />
+																	<div className="form-ctrls">
+																		<div className="label-box rex-cf">
+																			<span className="label-name rex-fl w154">家族史: </span>
+																			<div className="label-forms rex-fl">
+																				<Input.TextArea style={{width: 410}} value={state.formQueryDatas.disease_family} onChange={(v)=>this.handleForm('disease_family', v.target.value)} placeholder='请输入患者家族史信息' autosize={{ minRows: 2, maxRows: 6 }} />
+																			</div>
+																		</div>
+																	</div>
+																	<Placeholder height={15} />
+																	<div className="form-ctrls">
+																		<div className="label-box rex-cf">
+																			<span className="label-name rex-fl w154">实验室检查: </span>
+																			<div className="label-forms rex-fl">
+																				<Input.TextArea style={{width: 410}} value={state.formQueryDatas.inspection_result} onChange={(v)=>this.handleForm('inspection_result', v.target.value)} placeholder='请输入患者实验室检查信息' autosize={{ minRows: 2, maxRows: 6 }} />
+																			</div>
+																		</div>
+																	</div>
+																	<Placeholder height={15} />
+																	<div className="form-ctrls">
+																		<div className="label-box rex-cf align-center">
+																			<span className="label-name rex-fl w154">治法治则: </span>
+																			<div className="label-forms rex-fl">
+																				<Select
+																					showSearch
+																					placeholder='请选择治法治则'
+																					optionFilterProp='label'
+																					style={{width: 410}}
+																					value={state.formQueryDatas.treatment_id}
+																					onChange={(v) => this.handleForm('treatment_id', v)}
+																				>
+																					{
+																						state.treatment_list.map(v=>{
+																							// 拼 音 码 -> GetJP || 拼音全码 -> GetQP || 混 拼 码 -> GetHP
+																							const hunpinCode= window.Pinyin.GetJP(v.name);
+																							return(
+																								<Option key={v.id} value={v.id} label={hunpinCode}>{v.name}</Option>
+																							);
+																						})
+																					}
+																				</Select>
+																			</div>
+																		</div>
+																	</div>
+																	<Placeholder height={15} />
+																	<div className="form-ctrls">
+																		<div className="label-box rex-cf align-center">
+																			<span className="label-name rex-fl w154">中医诊断: </span>
+																			<div className="label-forms rex-fl">
+																				<Select
+																					showSearch
+																					placeholder='请选择中医诊断'
+																					optionFilterProp='label'
+																					style={{width: 410}}
+																					value={state.formQueryDatas.diagnosis_id}
+																					onChange={(v) => this.handleForm('diagnosis_id', v)}
+																				>
+																					{
+																						state.diagnosis.map(v=>{
+																							// 拼 音 码 -> GetJP || 拼音全码 -> GetQP || 混 拼 码 -> GetHP
+																							const hunpinCode= window.Pinyin.GetJP(v.name);
+																							return(
+																								<Option key={v.id} value={v.id} label={hunpinCode}>{v.name}</Option>
+																							);
+																						})
+																					}
+																				</Select>
+																			</div>
+																		</div>
+																	</div>
+																	<Placeholder height={15} />
+																	<div className="form-ctrls">
+																		<div className="label-box rex-cf align-center">
+																			<span className="label-name rex-fl w154">中医证型: </span>
+																			<div className="label-forms rex-fl">
+																				<Select
+																					showSearch
+																					placeholder='请选择中医证型'
+																					optionFilterProp='label'
+																					style={{width: 410}}
+																					value={state.formQueryDatas.tcm_id}
+																					onChange={(v) => this.handleForm('tcm_id', v)}
+																				>
+																					{
+																						state.tcm_list.map(v=>{
+																							// 拼 音 码 -> GetJP || 拼音全码 -> GetQP || 混 拼 码 -> GetHP
+																							const hunpinCode= window.Pinyin.GetJP(v.name);
+																							return(
+																								<Option key={v.id} value={v.id} label={hunpinCode}>{v.name}</Option>
+																							);
+																						})
+																					}
+																				</Select>
+																			</div>
+																		</div>
+																	</div>
+																	<Placeholder height={15} />
+																	<div className="form-ctrls">
+																		<div className="label-box rex-cf align-center">
+																			<span className="label-name rex-fl w154">西医诊断: </span>
+																			<div className="label-forms rex-fl">
+																				<Select
+																					showSearch
+																					placeholder='请选择西医诊断'
+																					optionFilterProp='label'
+																					style={{width: 410}}
+																					value={state.formQueryDatas.western_diagnosis_id}
+																					onChange={(v) => this.handleForm('western_diagnosis_id', v)}
+																				>
+																					{
+																						state.western_list.map(v=>{
+																							// 拼 音 码 -> GetJP || 拼音全码 -> GetQP || 混 拼 码 -> GetHP
+																							const hunpinCode= window.Pinyin.GetJP(v.name);
+																							return(
+																								<Option key={v.id} value={v.id} label={hunpinCode}>{v.name}</Option>
+																							);
+																						})
+																					}
+																				</Select>
+																			</div>
+																		</div>
+																	</div>
+																	<Placeholder height={15} />
+																	<div className="form-ctrls">
+																		<div className="label-box rex-cf">
+																			<span className="label-name rex-fl w154">医嘱: </span>
+																			<div className="label-forms rex-fl">
+																				<Input.TextArea style={{width: 410}} value={state.formQueryDatas.advise} onChange={(v)=>this.handleForm('advise', v.target.value)} placeholder='请输入患者医嘱信息' autosize={{ minRows: 2, maxRows: 6 }} />
+																			</div>
+																		</div>
+																	</div>
+																	{/*state.sickBook_current_page === state.sickBook_total_page 代表最后一页 因为是倒序 实则是第一页*/}
+																	{/*第一页没有药后反应*/}
+																	{/*新建病历簿的时候也没药后反应*/}
+																	{/*新增一页的时候需要药后反应*/}
+																	{
+																		state.sickBook_current_page === state.sickBook_total_page || state.sickBook_total_page===0?null:
+																			<React.Fragment>
+																				<Placeholder height={15} />
+																				<div className="form-ctrls">
+																					<div className="label-box rex-cf">
+																						<span className="label-name rex-fl w154">药后反应: </span>
+																						<div className="label-forms rex-fl">
+																							<Input.TextArea style={{width: 410}} value={state.formQueryDatas.drug_reaction} onChange={(v)=>this.handleForm('drug_reaction', v.target.value)} placeholder='请输入患者药后反应信息' autosize={{ minRows: 2, maxRows: 6 }} />
+																						</div>
+																					</div>
+																				</div>
+																			</React.Fragment>
+																	}
+																	{
+																		this.pid === null?null:
+																			<React.Fragment>
+																				<Placeholder height={15} />
+																				<div className="form-ctrls">
+																					<div className="label-box rex-cf">
+																						<span className="label-name rex-fl w154">药后反应: </span>
+																						<div className="label-forms rex-fl">
+																							<Input.TextArea style={{width: 410}} value={state.formQueryDatas.drug_reaction} onChange={(v)=>this.handleForm('drug_reaction', v.target.value)} placeholder='请输入患者药后反应信息' autosize={{ minRows: 2, maxRows: 6 }} />
+																						</div>
+																					</div>
+																				</div>
+																			</React.Fragment>
+																	}
+																	<Placeholder height={15} />
+																	<div className="form-ctrls">
+																		<div className="label-box rex-cf">
+																			<span className="label-name rex-fl w154">图像资料: </span>
+																			<div className="label-forms rex-fl" style={{width: 410}}>
+																				<Upload
+																					action={API.uploadFile}
+																					accept={'image/*'}
+																					listType="picture-card"
+																					fileList={state.fileList}
+																					name='file_name'
+																					data={{type: 'image'}}
+																					headers={{
+																						'Http-Authorization': LocalStorage.getObject('xy_userinfo').token || 'token not found'
+																					}}
+																					onPreview={async (file)=>{
+																						console.log(file);
+																						this.setState({
+																							previewImage: file.url || await this.getBase64(file.originFileObj),
+																							previewVisible: true,
+																						});
+																					}}
+																					onChange={(info)=>{
+																						this.setState({ fileList: [...info.fileList] });
+																						if (info.file.status !== 'uploading') {
+																							// console.log(info.file, info.fileList);
+																						}
+																						if (info.file.status === 'done') {
+																							message.success(`${info.file.name} 文件上传成功~`, 1);
+																							const res = info.file.response;
+																							if (res.code === 200) {
+																								/*const _fileURL = res.data.file_url;
+																								// 保存新建数据中的文件地址
+																								console.log(_fileURL);*/
+																							} else {
+																								// 接口异常 || 错误
+																								message.error(res.msg);
+																							}
+																						} else if (info.file.status === 'error') {
+																							message.error(`${info.file.name} 文件上传失败~`);
+																						}
+																					}}
+																				>
+																					{state.fileList.length >= 5 ? null : <div>
+																						<Icon type="plus" />
+																						<div className="ant-upload-text">上传图像</div>
+																					</div>}
+																				</Upload>
+																				<Button icon='camera' onClick={()=>this.openCamera()} title='拍摄照片'>拍摄照片</Button>
+																			</div>
+																		</div>
+																	</div>
+																	<Placeholder height={15} />
+																	<div className="form-ctrls">
+																		<div className="label-box rex-cf">
+																			<span className="label-name rex-fl w154">视频资料: </span>
+																			<div className="label-forms rex-fl">
+																				<Upload
+																					action={API.uploadFile}
+																					accept={'video/mp4'}
+																					fileList={state.fileList_videos}
+																					name='file_name'
+																					data={{type: 'video'}}
+																					headers={{
+																						'Http-Authorization': LocalStorage.getObject('xy_userinfo').token || 'token not found'
+																					}}
+																					onPreview={async (file)=>{
+																						console.log(file);
+																						this.setState({
+																							previewVideo: true,
+																							videoPreviewUrl: file.url || file.response.data.file_url
+																						});
+																					}}
+																					onChange={(info)=>{
+																						this.setState({ fileList_videos: [...info.fileList] });
+																						if (info.file.status !== 'uploading') {
+																							// console.log(info.file, info.fileList_videos);
+																						}
+																						if (info.file.status === 'done') {
+																							message.success(`${info.file.name} 文件上传成功~`, 1);
+																							const res = info.file.response;
+																							if (res.code === 200) {
+																								const _fileURL = res.data.file_url;
+																								// 保存新建数据中的文件地址
+																								console.log(_fileURL);
+																							} else {
+																								// 接口异常 || 错误
+																								message.error(res.msg);
+																							}
+																						} else if (info.file.status === 'error') {
+																							message.error(`${info.file.name} 文件上传失败~`);
+																						}
+																					}}
+																				>
+																					{state.fileList_videos.length >= 5 ? null : <Button icon='plus'>
+																						上传视频
+																					</Button>}
+																				</Upload>
+																			</div>
+																		</div>
+																	</div>
+																</div>
+															</div>
+														</div>
 													</div>
-													<Placeholder height={15} />
-													<div className="cy rex-cf">
-														<span className='rex-fl' style={{fontSize: 16, color: '#333'}}>完成次数:</span>
-														<InputNumber className='rex-fl' style={{width: 160, marginLeft: 12}} value={state.ll_count_doing} readOnly maxLength={4} max={100} min={1} precision={0} />
-													</div>
-													<Placeholder height={15} />
-													<div className="cy rex-cf">
-														<span className='rex-fl' style={{fontSize: 16, color: '#333'}}>理疗价格:</span>
-														<InputNumber className='rex-fl' style={{width: 160, marginLeft: 12}} value={state.ll_unit_price * 1 * (state.ll_count * 1)+'元'} readOnly />
-													</div>
-													<Placeholder height={15} />
-													<Button icon='save' disabled={state.status === '20' || state.status === 20 || state.status === '30' || state.status === 30} onClick={()=>this.saveLL()}>{state.status === '20' || state.status === 20?'已支付':state.status === '30' || state.status === 30?'已退款':'保存/修改'}</Button>
 												</div>
 											</TabPane>:null
 									}
-									<TabPane tab="病历信息" key="3">
-										{
-											state.formQueryDatas.dates.length>0?
-												<div>
-													<div className="form-ctrls">
-														<div className="label-box rex-cf align-center">
-															<span className="label-name rex-fl w154" style={{textAlign: 'left', width: 118}}>就诊日期关联查询: </span>
-															<div className="label-forms rex-fl">
-																<Select
-																	showSearch
-																	placeholder='可根据就诊日期查询'
-																	optionFilterProp='label'
-																	style={{width: 410}}
-																	value={state.formQueryDatas.current_date}
-																	onChange={(date) => {
-																		this.dataCenter.getdiseaserecordlistPages(this.state.sickBook_current_page, this.editSickBookId, false, date);
-																	}}
-																>
-																	{
-																		state.formQueryDatas.dates.map((v, i)=>{
-																			// 拼 音 码 -> GetJP || 拼音全码 -> GetQP || 混 拼 码 -> GetHP
-																			const hunpinCode= window.Pinyin.GetJP(v);
-																			return(
-																				<Option key={i} value={v} label={hunpinCode}>{v}</Option>
-																			);
-																		})
-																	}
-																</Select>
-															</div>
-														</div>
-													</div>
-												</div>:null
-										}
-										<div className="DivFieldset1">
-											<div className="DivFieldset1_title">基本信息</div>
-											<div className="DivFieldset1_content">
-												<div className="rex-fctns">
-													<div className="form-ctrls">
-														<div className="label-box rex-cf">
-															<span className="label-name rex-fl w154">患者主诉: </span>
-															<div className="label-forms rex-fl">
-																<Input.TextArea style={{width: 410}} value={state.formQueryDatas.patient_desc} onChange={(v)=>this.handleForm('patient_desc', v.target.value)} placeholder='请输入患者主诉信息' autosize={{ minRows: 2, maxRows: 6 }} />
-															</div>
-														</div>
-													</div>
-													<Placeholder height={15} />
-													<div className="form-ctrls">
-														<div className="label-box rex-cf">
-															<span className="label-name rex-fl w154">现病史: </span>
-															<div className="label-forms rex-fl">
-																<Input.TextArea style={{width: 410}} value={state.formQueryDatas.disease_history} onChange={(v)=>this.handleForm('disease_history', v.target.value)} placeholder='请输入患者现病史信息' autosize={{ minRows: 2, maxRows: 6 }} />
-															</div>
-														</div>
-													</div>
-													<Placeholder height={15} />
-													<div className="form-ctrls">
-														<div className="label-box rex-cf">
-															<span className="label-name rex-fl w154">既往史: </span>
-															<div className="label-forms rex-fl">
-																<Input.TextArea style={{width: 410}} value={state.formQueryDatas.disease_past} onChange={(v)=>this.handleForm('disease_past', v.target.value)} placeholder='请输入患者既往史信息' autosize={{ minRows: 2, maxRows: 6 }} />
-															</div>
-														</div>
-													</div>
-													<Placeholder height={15} />
-													<div className="form-ctrls">
-														<div className="label-box rex-cf">
-															<span className="label-name rex-fl w154">家族史: </span>
-															<div className="label-forms rex-fl">
-																<Input.TextArea style={{width: 410}} value={state.formQueryDatas.disease_family} onChange={(v)=>this.handleForm('disease_family', v.target.value)} placeholder='请输入患者家族史信息' autosize={{ minRows: 2, maxRows: 6 }} />
-															</div>
-														</div>
-													</div>
-													<Placeholder height={15} />
-													<div className="form-ctrls">
-														<div className="label-box rex-cf">
-															<span className="label-name rex-fl w154">实验室检查: </span>
-															<div className="label-forms rex-fl">
-																<Input.TextArea style={{width: 410}} value={state.formQueryDatas.inspection_result} onChange={(v)=>this.handleForm('inspection_result', v.target.value)} placeholder='请输入患者实验室检查信息' autosize={{ minRows: 2, maxRows: 6 }} />
-															</div>
-														</div>
-													</div>
-													<Placeholder height={15} />
-													<div className="form-ctrls">
-														<div className="label-box rex-cf align-center">
-															<span className="label-name rex-fl w154">治法治则: </span>
-															<div className="label-forms rex-fl">
-																<Select
-																	showSearch
-																	placeholder='请选择治法治则'
-																	optionFilterProp='label'
-																	style={{width: 410}}
-																	value={state.formQueryDatas.treatment_id}
-																	onChange={(v) => this.handleForm('treatment_id', v)}
-																>
-																	{
-																		state.treatment_list.map(v=>{
-																			// 拼 音 码 -> GetJP || 拼音全码 -> GetQP || 混 拼 码 -> GetHP
-																			const hunpinCode= window.Pinyin.GetJP(v.name);
-																			return(
-																				<Option key={v.id} value={v.id} label={hunpinCode}>{v.name}</Option>
-																			);
-																		})
-																	}
-																</Select>
-															</div>
-														</div>
-													</div>
-													<Placeholder height={15} />
-													<div className="form-ctrls">
-														<div className="label-box rex-cf align-center">
-															<span className="label-name rex-fl w154">中医诊断: </span>
-															<div className="label-forms rex-fl">
-																<Select
-																	showSearch
-																	placeholder='请选择中医诊断'
-																	optionFilterProp='label'
-																	style={{width: 410}}
-																	value={state.formQueryDatas.diagnosis_id}
-																	onChange={(v) => this.handleForm('diagnosis_id', v)}
-																>
-																	{
-																		state.diagnosis.map(v=>{
-																			// 拼 音 码 -> GetJP || 拼音全码 -> GetQP || 混 拼 码 -> GetHP
-																			const hunpinCode= window.Pinyin.GetJP(v.name);
-																			return(
-																				<Option key={v.id} value={v.id} label={hunpinCode}>{v.name}</Option>
-																			);
-																		})
-																	}
-																</Select>
-															</div>
-														</div>
-													</div>
-													<Placeholder height={15} />
-													<div className="form-ctrls">
-														<div className="label-box rex-cf align-center">
-															<span className="label-name rex-fl w154">中医证型: </span>
-															<div className="label-forms rex-fl">
-																<Select
-																	showSearch
-																	placeholder='请选择中医证型'
-																	optionFilterProp='label'
-																	style={{width: 410}}
-																	value={state.formQueryDatas.tcm_id}
-																	onChange={(v) => this.handleForm('tcm_id', v)}
-																>
-																	{
-																		state.tcm_list.map(v=>{
-																			// 拼 音 码 -> GetJP || 拼音全码 -> GetQP || 混 拼 码 -> GetHP
-																			const hunpinCode= window.Pinyin.GetJP(v.name);
-																			return(
-																				<Option key={v.id} value={v.id} label={hunpinCode}>{v.name}</Option>
-																			);
-																		})
-																	}
-																</Select>
-															</div>
-														</div>
-													</div>
-													<Placeholder height={15} />
-													<div className="form-ctrls">
-														<div className="label-box rex-cf align-center">
-															<span className="label-name rex-fl w154">西医诊断: </span>
-															<div className="label-forms rex-fl">
-																<Select
-																	showSearch
-																	placeholder='请选择西医诊断'
-																	optionFilterProp='label'
-																	style={{width: 410}}
-																	value={state.formQueryDatas.western_diagnosis_id}
-																	onChange={(v) => this.handleForm('western_diagnosis_id', v)}
-																>
-																	{
-																		state.western_list.map(v=>{
-																			// 拼 音 码 -> GetJP || 拼音全码 -> GetQP || 混 拼 码 -> GetHP
-																			const hunpinCode= window.Pinyin.GetJP(v.name);
-																			return(
-																				<Option key={v.id} value={v.id} label={hunpinCode}>{v.name}</Option>
-																			);
-																		})
-																	}
-																</Select>
-															</div>
-														</div>
-													</div>
-													<Placeholder height={15} />
-													<div className="form-ctrls">
-														<div className="label-box rex-cf">
-															<span className="label-name rex-fl w154">医嘱: </span>
-															<div className="label-forms rex-fl">
-																<Input.TextArea style={{width: 410}} value={state.formQueryDatas.advise} onChange={(v)=>this.handleForm('advise', v.target.value)} placeholder='请输入患者医嘱信息' autosize={{ minRows: 2, maxRows: 6 }} />
-															</div>
-														</div>
-													</div>
-													{/*state.sickBook_current_page === state.sickBook_total_page 代表最后一页 因为是倒序 实则是第一页*/}
-													{/*第一页没有药后反应*/}
-													{/*新建病历簿的时候也没药后反应*/}
-													{/*新增一页的时候需要药后反应*/}
-													{
-														state.sickBook_current_page === state.sickBook_total_page || state.sickBook_total_page===0?null:
-															<React.Fragment>
-																<Placeholder height={15} />
-																<div className="form-ctrls">
-																	<div className="label-box rex-cf">
-																		<span className="label-name rex-fl w154">药后反应: </span>
-																		<div className="label-forms rex-fl">
-																			<Input.TextArea style={{width: 410}} value={state.formQueryDatas.drug_reaction} onChange={(v)=>this.handleForm('drug_reaction', v.target.value)} placeholder='请输入患者药后反应信息' autosize={{ minRows: 2, maxRows: 6 }} />
-																		</div>
-																	</div>
-																</div>
-															</React.Fragment>
-													}
-													{
-														this.pid === null?null:
-															<React.Fragment>
-																<Placeholder height={15} />
-																<div className="form-ctrls">
-																	<div className="label-box rex-cf">
-																		<span className="label-name rex-fl w154">药后反应: </span>
-																		<div className="label-forms rex-fl">
-																			<Input.TextArea style={{width: 410}} value={state.formQueryDatas.drug_reaction} onChange={(v)=>this.handleForm('drug_reaction', v.target.value)} placeholder='请输入患者药后反应信息' autosize={{ minRows: 2, maxRows: 6 }} />
-																		</div>
-																	</div>
-																</div>
-															</React.Fragment>
-													}
-													<Placeholder height={15} />
-													<div className="form-ctrls">
-														<div className="label-box rex-cf">
-															<span className="label-name rex-fl w154">图像资料: </span>
-															<div className="label-forms rex-fl" style={{width: 410}}>
-																<Upload
-																	action={API.uploadFile}
-																	accept={'image/*'}
-																	listType="picture-card"
-																	fileList={state.fileList}
-																	name='file_name'
-																	data={{type: 'image'}}
-																	headers={{
-																		'Http-Authorization': LocalStorage.getObject('xy_userinfo').token || 'token not found'
-																	}}
-																	onPreview={async (file)=>{
-																		console.log(file);
-																		this.setState({
-																			previewImage: file.url || await this.getBase64(file.originFileObj),
-																			previewVisible: true,
-																		});
-																	}}
-																	onChange={(info)=>{
-																		this.setState({ fileList: [...info.fileList] });
-																		if (info.file.status !== 'uploading') {
-																			// console.log(info.file, info.fileList);
-																		}
-																		if (info.file.status === 'done') {
-																			message.success(`${info.file.name} 文件上传成功~`, 1);
-																			const res = info.file.response;
-																			if (res.code === 200) {
-																				/*const _fileURL = res.data.file_url;
-																				// 保存新建数据中的文件地址
-																				console.log(_fileURL);*/
-																			} else {
-																				// 接口异常 || 错误
-																				message.error(res.msg);
-																			}
-																		} else if (info.file.status === 'error') {
-																			message.error(`${info.file.name} 文件上传失败~`);
-																		}
-																	}}
-																>
-																	{state.fileList.length >= 5 ? null : <div>
-																		<Icon type="plus" />
-																		<div className="ant-upload-text">上传图像</div>
-																	</div>}
-																</Upload>
-																<Button icon='camera' onClick={()=>this.openCamera()} title='拍摄照片'>拍摄照片</Button>
-															</div>
-														</div>
-													</div>
-													<Placeholder height={15} />
-													<div className="form-ctrls">
-														<div className="label-box rex-cf">
-															<span className="label-name rex-fl w154">视频资料: </span>
-															<div className="label-forms rex-fl">
-																<Upload
-																	action={API.uploadFile}
-																	accept={'video/mp4'}
-																	fileList={state.fileList_videos}
-																	name='file_name'
-																	data={{type: 'video'}}
-																	headers={{
-																		'Http-Authorization': LocalStorage.getObject('xy_userinfo').token || 'token not found'
-																	}}
-																	onPreview={async (file)=>{
-																		console.log(file);
-																		this.setState({
-																			previewVideo: true,
-																			videoPreviewUrl: file.url || file.response.data.file_url
-																		});
-																	}}
-																	onChange={(info)=>{
-																		this.setState({ fileList_videos: [...info.fileList] });
-																		if (info.file.status !== 'uploading') {
-																			// console.log(info.file, info.fileList_videos);
-																		}
-																		if (info.file.status === 'done') {
-																			message.success(`${info.file.name} 文件上传成功~`, 1);
-																			const res = info.file.response;
-																			if (res.code === 200) {
-																				const _fileURL = res.data.file_url;
-																				// 保存新建数据中的文件地址
-																				console.log(_fileURL);
-																			} else {
-																				// 接口异常 || 错误
-																				message.error(res.msg);
-																			}
-																		} else if (info.file.status === 'error') {
-																			message.error(`${info.file.name} 文件上传失败~`);
-																		}
-																	}}
-																>
-																	{state.fileList_videos.length >= 5 ? null : <Button icon='plus'>
-																		上传视频
-																	</Button>}
-																</Upload>
-															</div>
-														</div>
-													</div>
-												</div>
-											</div>
-										</div>
-									</TabPane>
+									{/*<TabPane tab="病历信息" key="3"></TabPane>*/}
 								</Tabs>
 							</div>
 						</Drawer>
