@@ -188,20 +188,21 @@ class Prescribe extends React.Component {
 		cf_nums: '1',
 		/*处方折扣数据源*/
 		coupon_data: [
-			{value: '100', label: '无折扣'},
-			{value: '90', label: '九折'},
-			{value: '80', label: '八折'},
-			{value: '70', label: '七折'},
-			{value: '60', label: '六折'},
-			{value: '50', label: '五折'},
-			{value: '40', label: '四折'},
-			{value: '30', label: '三折'},
-			{value: '20', label: '二折'},
-			{value: '10', label: '一折'},
-			{value: '0', label: '免费'}
+			{value: '100', label: '无折扣', keys: '10'},
+			{value: '90', label: '九折', keys: '9'},
+			{value: '80', label: '八折', keys: '8'},
+			{value: '70', label: '七折', keys: '7'},
+			{value: '60', label: '六折', keys: '6'},
+			{value: '50', label: '五折', keys: '5'},
+			{value: '40', label: '四折', keys: '4'},
+			{value: '30', label: '三折', keys: '3'},
+			{value: '20', label: '二折', keys: '2'},
+			{value: '10', label: '一折', keys: '1'},
+			{value: '0', label: '免费', keys: '0'}
 		],
 		/*折扣选择*/
 		coupon_data_id: '100',
+		coupon_data_id2: '100',
 		/*成药列表*/
 		drug_group_list: [],
 		/*成药选择*/
@@ -573,9 +574,21 @@ class Prescribe extends React.Component {
 				}
 			}
 			$http.get(API.prescriptionListGet, queryParams).then(res=>{
+				let cfList_dates = res.data.data.dates;
+				try {
+					if (!window.Array.isArray(cfList_dates)){
+						let arrs = [];
+						for (let item in cfList_dates){
+							arrs.push(cfList_dates[item]);
+						}
+						cfList_dates = arrs;
+					}
+				} catch (e) {
+					cfList_dates = [];
+				}
 				this.setState({
 					cfList: res.data.data.list,
-					cfList_dates: res.data.data.dates,
+					cfList_dates,
 					cfList_total_page: res.data.data.page.tc
 				});
 			});
@@ -630,6 +643,7 @@ class Prescribe extends React.Component {
 						}); // 为了显示value值
 						setObj.ll_count = datas.nums;
 						setObj.ll_count_doing = datas.done_nums;
+						setObj.coupon_data_id2 = datas.zhekou_id;
 						setObj.activeKey2 = '2';
 						setObj.ll_list_id = datas.liliao_id !== '0' && datas.liliao_id !== ''?datas.liliao_id:undefined;
 						if (setObj.ll_list_id) {
@@ -708,6 +722,25 @@ class Prescribe extends React.Component {
 					if(res.data.code === 200){
 						// 处方开具成功 取货码: res.data.data.code
 						cb(res.data.data.code);
+					} else if (res.data.msg.indexOf('互为') >= 0) {
+						// 拦截十八反十九畏
+						Modal.confirm({
+							title: `检测到`+res.data.msg,
+							content: '是否确定开具此互斥属性药材',
+							okText: '确定开具',
+							okType: 'danger',
+							cancelText: '返回修改',
+							onOk: () => {
+								$http.post(API.prescriptionCreate, {...postdata, ignore_drug_warning: '1'}).then(res=>{
+									if(res.data.code === 200){
+										cb(res.data.data.code);
+									}
+								});
+							},
+							onCancel: () => {
+								// Canceled
+							}
+						});
 					}
 				});
 			} else if (type==='edit') {
@@ -715,6 +748,26 @@ class Prescribe extends React.Component {
 					if(res.data.code === 200){
 						// 处方更新成功
 						cb('update_success');
+					} else if (res.data.msg.indexOf('互为') >= 0) {
+						// 拦截十八反十九畏
+						Modal.confirm({
+							title: `检测到`+res.data.msg,
+							content: '是否确定开具此互斥属性药材',
+							okText: '确定开具',
+							okType: 'danger',
+							cancelText: '返回修改',
+							onOk: () => {
+								$http.post(API.prescriptionSave, {...postdata, ignore_drug_warning: '1'}).then(res=>{
+									if(res.data.code === 200){
+										// 处方更新成功
+										cb('update_success');
+									}
+								});
+							},
+							onCancel: () => {
+								// Canceled
+							}
+						});
 					}
 				});
 			}
@@ -1007,7 +1060,8 @@ class Prescribe extends React.Component {
 			acupoint_ids: this.state.xuewei_list_id !==undefined && this.state.xuewei_list_id.length >0?this.state.xuewei_list_id.join(','):'',
 			nums: this.state.ll_count,
 			disease_record_id: this.state.formQueryDatas.disease_record_id,
-			liliao_id: this.state.ll_list_id
+			liliao_id: this.state.ll_list_id,
+			zhekou_id: this.state.coupon_data_id2
 		};
 		if (this.cfEditId !== null) {
 			// 编辑
@@ -1092,8 +1146,8 @@ class Prescribe extends React.Component {
 		    coupon_data_id: '100',
 		    drug_group_list_id: undefined,
 		    cf_info_list: [
-			    {drug_id: undefined, weight: '', price: 0, empty: false},
-			    {drug_id: undefined, weight: '', price: 0, empty: false}
+			    /*{drug_id: undefined, weight: '', price: 0, empty: false},
+			    {drug_id: undefined, weight: '', price: 0, empty: false}*/
 		    ],
 		    hide_cf_list: false,
 		    thumb: '',
@@ -2970,7 +3024,7 @@ class Prescribe extends React.Component {
 																{
 																	state.coupon_data.map(v=>{
 																		return (
-																			<Option key={v.value} value={v.value} label={v.label}>{v.label}</Option>
+																			<Option key={v.value} value={v.value} label={v.keys}>{v.label}</Option>
 																		);
 																	})
 																}
@@ -3427,12 +3481,38 @@ class Prescribe extends React.Component {
 														<Placeholder height={15} />
 														<div className="cy rex-cf">
 															<span className='rex-fl' style={{fontSize: 16, color: '#333'}}>完成次数:</span>
-															<InputNumber className='rex-fl' style={{width: 160, marginLeft: 12}} value={state.ll_count_doing} readOnly maxLength={4} max={100} min={1} precision={0} />
+															<InputNumber className='rex-fl' style={{width: 160, marginLeft: 12}} value={state.ll_count_doing} readOnly maxLength={4} max={100} min={0} precision={0} />
+														</div>
+														<Placeholder height={15} />
+														<div className='cf-list-unit'>
+															<span className='names'>处方折扣:</span>
+															<Select
+																className='sel rex-fl'
+																showSearch
+																optionFilterProp='label'
+																placeholder={'选择处方折扣'}
+																value={state.coupon_data_id2}
+																style={{ width: 160, textIndent: 0 }}
+																onChange={(v)=>this.setState({coupon_data_id2: v})}
+															>
+																{
+																	state.coupon_data.map(v=>{
+																		return (
+																			<Option key={v.value} value={v.value} label={v.keys}>{v.label}</Option>
+																		);
+																	})
+																}
+															</Select>
 														</div>
 														<Placeholder height={15} />
 														<div className="cy rex-cf">
 															<span className='rex-fl' style={{fontSize: 16, color: '#333'}}>理疗价格:</span>
-															<InputNumber className='rex-fl' style={{width: 160, marginLeft: 12}} value={state.ll_unit_price * 1 * (state.ll_count * 1)+'元'} readOnly />
+															<InputNumber className='rex-fl' style={{width: 160, marginLeft: 12}} value={state.ll_unit_price * 1 * (state.ll_count * 1) * (state.coupon_data_id2*1/100)+'元'} readOnly />
+														</div>
+														<Placeholder height={15} />
+														<div className="cy rex-cf">
+															<span className='rex-fl' style={{fontSize: 16, color: '#333'}}>优惠金额:</span>
+															<InputNumber className='rex-fl' style={{width: 160, marginLeft: 12}} value={state.ll_unit_price * 1 * (state.ll_count * 1) * ((100-state.coupon_data_id2*1)/100)+'元'} readOnly />
 														</div>
 														<Placeholder height={15} />
 														<Button icon='save' disabled={state.status === '20' || state.status === 20 || state.status === '30' || state.status === 30} onClick={()=>this.saveLL()}>{state.status === '20' || state.status === 20?'已支付':state.status === '30' || state.status === 30?'已退款':'保存/修改'}</Button>
