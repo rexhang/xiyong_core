@@ -36,7 +36,7 @@ axios.interceptors.response.use(function (response) {
 			message.warn('登录失效, 请重新登录');
 			window.location.href = '#/login';
 		} else {
-			if (response.data.msg.indexOf('互为') >= 0){
+			if (response.data.code === 420){
 				// 兼容十八反十九畏
 			} else {
 				message.error(response.data.msg || 'code码错误~', 2);

@@ -722,7 +722,7 @@ class Prescribe extends React.Component {
 					if(res.data.code === 200){
 						// 处方开具成功 取货码: res.data.data.code
 						cb(res.data.data.code);
-					} else if (res.data.msg.indexOf('互为') >= 0) {
+					} else if (res.data.code === 420) {
 						// 拦截十八反十九畏
 						Modal.confirm({
 							title: `检测到`+res.data.msg,
@@ -748,7 +748,7 @@ class Prescribe extends React.Component {
 					if(res.data.code === 200){
 						// 处方更新成功
 						cb('update_success');
-					} else if (res.data.msg.indexOf('互为') >= 0) {
+					} else if (res.data.code === 420) {
 						// 拦截十八反十九畏
 						Modal.confirm({
 							title: `检测到`+res.data.msg,
