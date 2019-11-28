@@ -149,16 +149,16 @@ class Prescribe extends React.Component {
 			patient_desc: '',
 			disease_history: '',
 			inspection_result: '',
-			diagnosis_id: undefined,
+			diagnosis_id: [],
 			advise: '',
 			files: [],
 			disease_record_id: '',
 			pid: '',
 			disease_past: '',
 			disease_family: '',
-			tcm_id: undefined,
-			treatment_id: undefined,
-			western_diagnosis_id: undefined,
+			tcm_id: [],
+			treatment_id: [],
+			western_diagnosis_id: [],
 			drug_reaction: '',
 			update_time: '',
 			current_date: undefined,
@@ -267,7 +267,12 @@ class Prescribe extends React.Component {
 			name: '',
 			id: undefined
 		},
-		doing_ll_loading: false
+		doing_ll_loading: false,
+		showCFInputs: true,
+		zigouTEXT: '',
+		waiyongNums: '',
+		waiyongListID: [],
+		waiyongList: []
 	};
 
 	searchbox = null;
@@ -281,6 +286,7 @@ class Prescribe extends React.Component {
 		this.dataCenter.drugGet();
 		this.dataCenter.getDrugs2();
 		this.dataCenter.getXuewei();
+		this.dataCenter.getWaiyongList();
 		this.dataCenter.getTcms();
 		this.dataCenter.getTreatmentList();
 		this.dataCenter.getWests();
@@ -327,6 +333,19 @@ class Prescribe extends React.Component {
 				if (res.data.code === 200){
 					this.setState({
 						xuewei_list: res.data.data.list
+					});
+				}
+			});
+		},
+		getWaiyongList: (name='') => {
+			$http.get(API.outsideDrugsList, {
+				name,
+				pn: 1,
+				cn: 1000
+			}).then(res=>{
+				if (res.data.code === 200){
+					this.setState({
+						waiyongList: res.data.data.list
 					});
 				}
 			});
@@ -519,10 +538,10 @@ class Prescribe extends React.Component {
 							disease_past: D.disease_past,
 							disease_family: D.disease_family,
 							inspection_result: D.inspection_result,
-							diagnosis_id: D.diagnosis_id,
-							tcm_id: D.tcm_id!=='0' && D.tcm_id !== ''?D.tcm_id:undefined,
-							treatment_id: D.treatment_id!=='0' && D.treatment_id !== ''?D.treatment_id:undefined,
-							western_diagnosis_id: D.western_diagnosis_id!=='0' && D.western_diagnosis_id !== ''?D.western_diagnosis_id:undefined,
+							diagnosis_id: D.diagnosis_ids===""?[]:D.diagnosis_ids.split(","),
+							tcm_id: D.tcm_ids===""?[]:D.tcm_ids.split(","),
+							treatment_id: D.treatment_ids===""?[]:D.treatment_ids.split(","),
+							western_diagnosis_id: D.western_diagnosis_ids===""?[]:D.western_diagnosis_ids.split(","),
 							advise: D.advise,
 							drug_reaction: D.drug_reaction,
 							disease_record_id: D.id,
@@ -546,10 +565,10 @@ class Prescribe extends React.Component {
 								disease_past: D.disease_past,
 								disease_family: D.disease_family,
 								inspection_result: D.inspection_result,
-								diagnosis_id: D.diagnosis_id,
-								tcm_id: D.tcm_id!=='0' && D.tcm_id !== ''?D.tcm_id:undefined,
-								treatment_id: D.treatment_id!=='0' && D.treatment_id !== ''?D.treatment_id:undefined,
-								western_diagnosis_id: D.western_diagnosis_id!=='0' && D.western_diagnosis_id !== ''?D.western_diagnosis_id:undefined,
+								diagnosis_id: D.diagnosis_ids===""?[]:D.diagnosis_ids.split(","),
+								tcm_id: D.tcm_ids===""?[]:D.tcm_ids.split(","),
+								treatment_id: D.treatment_ids===""?[]:D.treatment_ids.split(","),
+								western_diagnosis_id: D.western_diagnosis_ids===""?[]:D.western_diagnosis_ids.split(","),
 								advise: D.advise,
 								drug_reaction: D.drug_reaction?D.drug_reaction:'',
 								update_time: D.update_time,
@@ -610,94 +629,110 @@ class Prescribe extends React.Component {
 		getCfInfo: (id) => {
 			$http.get(API.prescriptionListInfoGet, {
 				id
-			}).then(res=>{
-				if (res.data.code === 200){
-					const datas = res.data.data;
-					/*xuewei_list_id: undefined,
+			}).then(res=>{				if (res.data.code === 200){
+				const datas = res.data.data;
+				/*xuewei_list_id: undefined,
 						xuewei_list: [],
 						ll_count: '1',*/
-					let setObj = {
-						cf_private: datas.private === '1' || datas.private === 1,
-						drinkStyle_id: datas.taking_method,
-						me_type: datas.drug_group_type,
-						cf_remark: datas.remark,
-						cf_nums: datas.nums,
-						coupon_data_id: datas.zhekou_id,
-						drug_group_list_id: datas.drug_group_id==='0'||datas.drug_group_id===0||datas.drug_group_id===''?undefined:datas.drug_group_id,
-						hide_cf_list: datas.drug_group_type === '5' || datas.drug_group_type === '2',
-						thumb: datas.thumb,
-						poster: datas.poster,
-						/*total_money: datas.total_money,
+				let setObj = {
+					cf_private: datas.private === '1' || datas.private === 1,
+					drinkStyle_id: datas.taking_method,
+					me_type: datas.drug_group_type,
+					cf_remark: datas.remark,
+					cf_nums: datas.nums,
+					coupon_data_id: datas.zhekou_id,
+					drug_group_list_id: datas.drug_group_id==='0'||datas.drug_group_id===0||datas.drug_group_id===''?undefined:datas.drug_group_id,
+					hide_cf_list: datas.drug_group_type === '5' || datas.drug_group_type === '2',
+					thumb: datas.thumb,
+					poster: datas.poster,
+					/*total_money: datas.total_money,
 						real_money: datas.real_money,
 						unit_money: datas.unit_money,*/
-						code: datas.code,
-						status: datas.status,
-						activeKey2: '1',
-					};
-					if (datas.drug_group_type === '2') {
-						// 成品药 才有days
-						setObj.cf_days = datas.days;
-						setObj.me_type2_money = datas.unit_money;
-
-					}
-					if (datas.drug_group_type === '5') {
-						// 单独处理2种药物的价格
-						setObj.me_type5_money = datas.unit_money;
-					}
-					if (datas.type === '1'){
-						// 理疗类型
-						setObj.xuewei_list = datas.acupoints.map(v=>{
-							return {
-								id: v.acupoint_id,
-								name: v.acupoint_name
-							};
-						}); // 为了显示源氏数据数组
-						setObj.xuewei_list_id = datas.acupoints.map(v=>{
-							return v.acupoint_id;
-						}); // 为了显示value值
-						setObj.ll_count = datas.nums;
-						setObj.ll_count_doing = datas.done_nums;
-						setObj.coupon_data_id2 = datas.zhekou_id;
-						setObj.activeKey2 = '2';
-						setObj.ll_list_id = datas.liliao_id !== '0' && datas.liliao_id !== ''?datas.liliao_id:undefined;
-						if (setObj.ll_list_id) {
-							setObj.ll_unit_price = datas.unit_money * 1;
-						}
-					}
-					setObj.only_show = datas.type;
-					// 非成品药
-					if (datas.drug_group_type !== '2') {
-						setObj.cf_info_list = datas.drugs.map(v=>{
-							return {
-								...v,
-								name: v.drug_name,
-								drug_id: v.drug_id,
-								price: v.price,
-								empty: false
-							};
-						});
-					} else {
-						setObj.cf_info_list = [
-							{drug_id: undefined, weight: '', price: 0, empty: false},
-							{drug_id: undefined, weight: '', price: 0, empty: false}
-						];
-					}
-					// 搜索用数据
-					if (datas.drugs.length>0) {
-						setObj.drug_list = datas.drugs.map(v=>{
-							return {
-								id: v.drug_id,
-								name: v.drug_name,
-								price: v.price
-							};
-						});
-					}
-					if (datas.drug_group_type === '2') {
-						// 如果是成品药
-						setObj.drugData2_id = datas.drugs[0].drug_id;
-					}
-					this.setState(setObj);
+					code: datas.code,
+					status: datas.status,
+					activeKey2: '1',
+				};
+				if (datas.drug_group_type === '3') {
+					// 自购药 才有self_purchase_drugs
+					setObj.zigouTEXT = datas.self_purchase_drugs;
 				}
+				if (datas.drug_group_type === '4') {
+					// 外用药 才有self_purchase_drugs marks
+					if (datas.outter_drugs.length > 0 ){
+						let waiyongListID = [];
+						let waiyongNums = [];
+						datas.outter_drugs.forEach(vals=>{
+							waiyongListID.push(vals.id);
+							waiyongNums.push(vals.num);
+						});
+						setObj.waiyongListID = waiyongListID;
+						setObj.waiyongNums = waiyongNums.join(',');
+					}
+				}
+				if (datas.drug_group_type === '2') {
+					// 成品药 才有days
+					setObj.cf_days = datas.days;
+					setObj.me_type2_money = datas.unit_money;
+
+				}
+				if (datas.drug_group_type === '5') {
+					// 单独处理2种药物的价格
+					setObj.me_type5_money = datas.unit_money;
+				}
+				if (datas.type === '1'){
+					// 理疗类型
+					setObj.xuewei_list = datas.acupoints.map(v=>{
+						return {
+							id: v.acupoint_id,
+							name: v.acupoint_name
+						};
+					}); // 为了显示源氏数据数组
+					setObj.xuewei_list_id = datas.acupoints.map(v=>{
+						return v.acupoint_id;
+					}); // 为了显示value值
+					setObj.ll_count = datas.nums;
+					setObj.ll_count_doing = datas.done_nums;
+					setObj.coupon_data_id2 = datas.zhekou_id;
+					setObj.activeKey2 = '2';
+					setObj.ll_list_id = datas.liliao_id !== '0' && datas.liliao_id !== ''?datas.liliao_id:undefined;
+					if (setObj.ll_list_id) {
+						setObj.ll_unit_price = datas.unit_money * 1;
+					}
+				}
+				setObj.only_show = datas.type;
+				// 非成品药
+				if (datas.drug_group_type !== '2') {
+					setObj.cf_info_list = datas.drugs.map(v=>{
+						return {
+							...v,
+							name: v.drug_name,
+							drug_id: v.drug_id,
+							price: v.price,
+							empty: false
+						};
+					});
+				} else {
+					setObj.cf_info_list = [
+						{drug_id: undefined, weight: '', price: 0, empty: false},
+						{drug_id: undefined, weight: '', price: 0, empty: false}
+					];
+				}
+				// 搜索用数据
+				if (datas.drugs.length>0) {
+					setObj.drug_list = datas.drugs.map(v=>{
+						return {
+							id: v.drug_id,
+							name: v.drug_name,
+							price: v.price
+						};
+					});
+				}
+				if (datas.drug_group_type === '2') {
+					// 如果是成品药
+					setObj.drugData2_id = datas.drugs[0].drug_id;
+				}
+				this.setState(setObj);
+			}
 			});
 		},
 		deletediseaserecordlist: (id, is_inside=false) => {
@@ -822,7 +857,7 @@ class Prescribe extends React.Component {
 			// 	message.warn('请选择治法治则');
 			// 	return false;
 			// }
-			if (!diagnosis_id) {
+			if (diagnosis_id.length===0) {
 				message.warn('请选择中医诊断');
 				return false;
 			}
@@ -844,13 +879,13 @@ class Prescribe extends React.Component {
 				patient_desc: patient_desc?patient_desc:'',
 				disease_history: disease_history?disease_history:'',
 				inspection_result: inspection_result?inspection_result:'',
-				diagnosis_id,
+				diagnosis_ids: diagnosis_id.join(','),
 				advise: advise?advise:'',
 				disease_past: disease_past?disease_past:'',
 				disease_family: disease_family?disease_family:'',
-				tcm_id: tcm_id?tcm_id:undefined,
-				treatment_id: treatment_id?treatment_id:undefined,
-				western_diagnosis_id: western_diagnosis_id?western_diagnosis_id:undefined,
+				tcm_ids: tcm_id.length>0?tcm_id.join(','):"",
+				treatment_ids: treatment_id.length>0?treatment_id.join(','):"",
+				western_diagnosis_ids: western_diagnosis_id.length>0?western_diagnosis_id.join(','):"",
 				drug_reaction: drug_reaction?drug_reaction:''
 			};
 			// 选填字段
@@ -1119,16 +1154,16 @@ class Prescribe extends React.Component {
 				patient_desc: '',
 				disease_history: '',
 				inspection_result: '',
-				diagnosis_id: undefined,
+				diagnosis_id: [],
 				advise: '',
 				files: [],
 				disease_record_id: '',
 				pid: '',
 				disease_past: '',
 				disease_family: '',
-				tcm_id: undefined,
-				treatment_id: undefined,
-				western_diagnosis_id: undefined,
+				tcm_id: [],
+				treatment_id: [],
+				western_diagnosis_id: [],
 				drug_reaction: '',
 				update_time: '',
 				current_date: undefined,
@@ -1178,7 +1213,8 @@ class Prescribe extends React.Component {
 		    xuewei_list_id: undefined,
 		    ll_count: '1',
 		    activeKey2: '1',
-		    only_show: '100'
+		    only_show: '100',
+		    showCFInputs: true
 	    });
 		this.cfEditId = null;
 	};
@@ -1415,7 +1451,6 @@ class Prescribe extends React.Component {
 	handleMeTypeChange = (e) => {
 		// 草药、成药的切换回调
 		const value = e.target.value;
-
 		if (this.state.drugData2_id !== undefined && this.state.drugData2_id !== null) {
 			message.warn('您已勾选成品药, 不可切换其他类型');
 			return false;
@@ -1426,6 +1461,7 @@ class Prescribe extends React.Component {
 				// 隐藏清单域
 				this.setState({
 					hide_cf_list: true,
+					showCFInputs: true,
 					me_type: value
 				});
 			} else {
@@ -1435,6 +1471,7 @@ class Prescribe extends React.Component {
 		} else if (value === '0'){
 			this.setState({
 				hide_cf_list: false,
+				showCFInputs: true,
 				me_type: value
 			});
 		} else if (value === '2'){
@@ -1443,12 +1480,29 @@ class Prescribe extends React.Component {
 				// 隐藏清单域
 				this.setState({
 					hide_cf_list: true,
+					showCFInputs: true,
 					me_type: value
 				});
 			} else {
 				message.warn('采用成品药必须选择');
 				return false;
 			}
+		} else if (value === '3'){
+			// 切换为自购药
+			logjs.info('自购药');
+			this.setState({
+				hide_cf_list: true,
+				showCFInputs: false,
+				me_type: value
+			});
+		} else if (value === '4'){
+			// 切换为外用药
+			logjs.info('外用药');
+			this.setState({
+				hide_cf_list: true,
+				showCFInputs: false,
+				me_type: value
+			});
 		}
 	};
 
@@ -1594,6 +1648,145 @@ class Prescribe extends React.Component {
 		const state = this.state;
 		let {drug_group_list_id, cf_info_list, cf_private, me_type, drinkStyle_id, cf_remark, cf_nums, coupon_data_id, thumb, poster, cf_days, drugData2_id} = state;
 		// console.log(cf_info_list);
+
+		// 自购药3、外用药4 进行优先检测
+		if (me_type === '3'){
+			// 自购药3
+			// 处方清单内容 && 服用方式检测
+			if (!this.state.zigouTEXT){
+				message.warn('请输入处方清单内容~');
+				return false;
+			}
+			if (!this.checkEmpty(drinkStyle_id)) {
+				message.warn('选择正确的服用方式');
+				return false;
+			}
+			let postdata3 = {
+				patient_id: this.state.currentUserInfo.id,
+				disease_record_id: this.state.formQueryDatas.disease_record_id,
+				drug_group_type: '3',
+				self_purchase_drugs: this.state.zigouTEXT,
+				taking_method: drinkStyle_id,
+				drug_group_id: '',
+				drugs: [],
+				remark: '',
+				zhekou_id: '100',
+				private: cf_private?'1':'0',
+				nums: '0',
+				thumb: 'default_thumb',
+				poster: 'default_poster'
+			};
+			if (this.cfEditId !== null) {
+				// 编辑
+				postdata3.prescription_id = this.cfEditId;
+				this.dataCenter.saveCfContent(postdata3, ()=>{
+					// 刷新获取处方列表接口
+					this.dataCenter.getcfList(1, this.state.formQueryDatas.disease_record_id);
+					Modal.success({
+						title: '提示',
+						content: '处方更新成功',
+						okText: '关闭',
+						onOk: () => {
+							// this.exitStage2();
+						}
+					});
+				}, 'edit');
+			} else {
+				// 新建
+				this.dataCenter.saveCfContent(postdata3, (code)=>{
+					// 刷新获取处方列表接口
+					this.dataCenter.getcfList(1, this.state.formQueryDatas.disease_record_id);
+					Modal.success({
+						title: '处方开具成功',
+						content: '处方取货码: 『'+code+'』',
+						okText: '关闭',
+						onOk: () => {
+							this.exitStage2();
+						}
+					});
+				});
+			}
+			return false;
+		}
+
+		if (me_type === '4'){
+			// 外用4
+			// 处方清单内容 && 服用方式检测
+			if (this.state.waiyongListID.length===0){
+				message.warn('请选择外用药~');
+				return false;
+			}
+			if (!this.state.waiyongNums){
+				message.warn('请输入外用药个数~');
+				return false;
+			}
+			if (this.state.waiyongNums.split(',').length !== this.state.waiyongListID.length){
+				message.warn('请输入对应的外用药个数关系~');
+				return false;
+			}
+			if (!this.checkEmpty(drinkStyle_id)) {
+				message.warn('选择正确的服用方式');
+				return false;
+			}
+			// let outter_drugs = [{id: num}];
+			// drugs = '['+drugs.join(',')+']';
+			let outter_drugs = [];
+			this.state.waiyongListID.forEach((val, _index)=>{
+				outter_drugs.push(window.JSON.stringify({
+					id: val,
+					num: this.state.waiyongNums.split(',')[_index]
+				}));
+			});
+			outter_drugs = '['+outter_drugs.join(',')+']';
+
+			let postdata4 = {
+				patient_id: this.state.currentUserInfo.id,
+				disease_record_id: this.state.formQueryDatas.disease_record_id,
+				drug_group_type: '4',
+				taking_method: drinkStyle_id,
+				drug_group_id: '',
+				drugs: [],
+				remark: '',
+				zhekou_id: '100',
+				private: cf_private?'1':'0',
+				nums: '0',
+				thumb: 'default_thumb',
+				poster: 'default_poster',
+				outter_drugs
+			};
+			if (this.cfEditId !== null) {
+				// 编辑
+				postdata4.prescription_id = this.cfEditId;
+				this.dataCenter.saveCfContent(postdata4, ()=>{
+					// 刷新获取处方列表接口
+					this.dataCenter.getcfList(1, this.state.formQueryDatas.disease_record_id);
+					Modal.success({
+						title: '提示',
+						content: '处方更新成功',
+						okText: '关闭',
+						onOk: () => {
+							// this.exitStage2();
+						}
+					});
+				}, 'edit');
+			} else {
+				// 新建
+				this.dataCenter.saveCfContent(postdata4, (code)=>{
+					// 刷新获取处方列表接口
+					this.dataCenter.getcfList(1, this.state.formQueryDatas.disease_record_id);
+					Modal.success({
+						title: '处方开具成功',
+						content: '处方取货码: 『'+code+'』',
+						okText: '关闭',
+						onOk: () => {
+							this.exitStage2();
+						}
+					});
+				});
+			}
+			return false;
+		}
+
 		// 基本检测
 		if (!this.checkEmpty(drinkStyle_id)) {
 			message.warn('选择正确的服用方式');
@@ -2262,6 +2455,7 @@ class Prescribe extends React.Component {
 														<div className="label-forms rex-fl">
 															<Select
 																showSearch
+																mode="multiple"
 																placeholder='请选择治法治则'
 																optionFilterProp='label'
 																style={{width: 260}}
@@ -2271,7 +2465,7 @@ class Prescribe extends React.Component {
 																{
 																	state.treatment_list.map(v=>{
 																		// 拼 音 码 -> GetJP || 拼音全码 -> GetQP || 混 拼 码 -> GetHP
-																		const hunpinCode= window.Pinyin.GetJP(v.name);
+																		const hunpinCode= v.letters.join(',');
 																		console.log(hunpinCode);
 																		return(
 																			<Option key={v.id} value={v.id} label={hunpinCode}>{v.name}</Option>
@@ -2295,6 +2489,7 @@ class Prescribe extends React.Component {
 														<div className="label-forms rex-fl">
 															<Select
 																showSearch
+																mode="multiple"
 																placeholder='请选择中医诊断'
 																optionFilterProp='label'
 																style={{width: 260}}
@@ -2304,7 +2499,7 @@ class Prescribe extends React.Component {
 																{
 																	state.diagnosis.map(v=>{
 																		// 拼 音 码 -> GetJP || 拼音全码 -> GetQP || 混 拼 码 -> GetHP
-																		const hunpinCode= window.Pinyin.GetJP(v.name);
+																		const hunpinCode= v.letters.join(',');
 																		return(
 																			<Option key={v.id} value={v.id} label={hunpinCode}>{v.name}</Option>
 																		);
@@ -2327,6 +2522,7 @@ class Prescribe extends React.Component {
 														<div className="label-forms rex-fl">
 															<Select
 																showSearch
+																mode="multiple"
 																placeholder='请选择中医证型'
 																optionFilterProp='label'
 																style={{width: 260}}
@@ -2336,7 +2532,7 @@ class Prescribe extends React.Component {
 																{
 																	state.tcm_list.map(v=>{
 																		// 拼 音 码 -> GetJP || 拼音全码 -> GetQP || 混 拼 码 -> GetHP
-																		const hunpinCode= window.Pinyin.GetJP(v.name);
+																		const hunpinCode= v.letters.join(',');
 																		return(
 																			<Option key={v.id} value={v.id} label={hunpinCode}>{v.name}</Option>
 																		);
@@ -2359,6 +2555,7 @@ class Prescribe extends React.Component {
 														<div className="label-forms rex-fl">
 															<Select
 																showSearch
+																mode="multiple"
 																placeholder='请选择西医诊断'
 																optionFilterProp='label'
 																style={{width: 260}}
@@ -2368,7 +2565,7 @@ class Prescribe extends React.Component {
 																{
 																	state.western_list.map(v=>{
 																		// 拼 音 码 -> GetJP || 拼音全码 -> GetQP || 混 拼 码 -> GetHP
-																		const hunpinCode= window.Pinyin.GetJP(v.name);
+																		const hunpinCode= v.letters.join(',');
 																		return(
 																			<Option key={v.id} value={v.id} label={hunpinCode}>{v.name}</Option>
 																		);
@@ -2691,6 +2888,10 @@ class Prescribe extends React.Component {
 																		mode_name = '成品药';
 																	} else if (item.drug_group_type === '5') {
 																		mode_name = '成药';
+																	} else if (item.drug_group_type === '3') {
+																		mode_name = '自购药';
+																	} else if (item.drug_group_type === '4') {
+																		mode_name = '外用药';
 																	}
 																	const ll_progress = `(理疗进度: ${item.done_nums}/${item.nums})`;
 																	return (
@@ -3048,103 +3249,198 @@ class Prescribe extends React.Component {
 																<Radio value={'0'}>草药</Radio>
 																<Radio value={'5'}>成药</Radio>
 																<Radio value={'2'}>成品药</Radio>
+																<Radio value={'3'}>自购药</Radio>
+																<Radio value={'4'}>外用药</Radio>
 															</Radio.Group>
 														</div>
 														<Placeholder height={15} />
-														<div className='cf-list-unit'>
-															<span className='names'>处方服用方式:</span>
-															<Select
-																className='sel rex-fl'
-																value={state.drinkStyle_id}
-																placeholder={'选择处方服用方式'}
-																showSearch
-																optionFilterProp='label'
-																style={{ width: 160, textIndent: 0 }}
-																onChange={(v)=>this.setState({drinkStyle_id: v})}
-															>
-																{
-																	state.drinkStyle.map(v=>{
-																		// 拼 音 码 -> GetJP || 拼音全码 -> GetQP || 混 拼 码 -> GetHP
-																		const hunpinCode= window.Pinyin.GetJP(v.name);
-																		return(
-																			<Option key={v.id} value={v.id} label={hunpinCode}>{v.name}</Option>
-																		);
-																	})
-																}
-															</Select>
-														</div>
-														<Placeholder height={15} />
-														<div className='cf-list-unit'>
-															<span className='names'>处方备注信息:</span>
-															<Input style={{width: 160}} value={state.cf_remark} onChange={e=>this.setState({cf_remark: e.target.value})} placeholder='输入处方备注信息' />
-														</div>
-														<Placeholder height={15} />
-														<div className='cf-list-unit'>
-															<span className='names'>处方付数设置:</span>
-															<InputNumber style={{width: 160}} value={state.cf_nums} onChange={e=>this.setState({cf_nums: e})} placeholder='输入处方付数' maxLength={4} max={100} min={1} precision={0} />
-														</div>
 														{
-															state.drugData2_id !== undefined && state.drugData2_id !== null?
+															state.showCFInputs && state.me_type!=='3' && state.me_type!==3 && state.me_type!=='4' && state.me_type!==4?
 																<React.Fragment>
+																	<div className='cf-list-unit'>
+																		<span className='names'>处方服用方式:</span>
+																		<Select
+																			className='sel rex-fl'
+																			value={state.drinkStyle_id}
+																			placeholder={'选择处方服用方式'}
+																			showSearch
+																			optionFilterProp='label'
+																			style={{ width: 160, textIndent: 0 }}
+																			onChange={(v)=>this.setState({drinkStyle_id: v})}
+																		>
+																			{
+																				state.drinkStyle.map(v=>{
+																					// 拼 音 码 -> GetJP || 拼音全码 -> GetQP || 混 拼 码 -> GetHP
+																					const hunpinCode= window.Pinyin.GetJP(v.name);
+																					return(
+																						<Option key={v.id} value={v.id} label={hunpinCode}>{v.name}</Option>
+																					);
+																				})
+																			}
+																		</Select>
+																	</div>
 																	<Placeholder height={15} />
 																	<div className='cf-list-unit'>
-																		<span className='names'>处方天数设置:</span>
-																		<InputNumber style={{width: 160}} value={state.cf_days} onChange={e=>this.setState({cf_days: e})} placeholder='输入处方天数' maxLength={4} max={100} min={1} precision={0} />
+																		<span className='names'>处方备注信息:</span>
+																		<Input style={{width: 160}} value={state.cf_remark} onChange={e=>this.setState({cf_remark: e.target.value})} placeholder='输入处方备注信息' />
+																	</div>
+																	<Placeholder height={15} />
+																	<div className='cf-list-unit'>
+																		<span className='names'>处方付数设置:</span>
+																		<InputNumber style={{width: 160}} value={state.cf_nums} onChange={e=>this.setState({cf_nums: e})} placeholder='输入处方付数' maxLength={4} max={100} min={1} precision={0} />
+																	</div>
+																	{
+																		state.drugData2_id !== undefined && state.drugData2_id !== null?
+																			<React.Fragment>
+																				<Placeholder height={15} />
+																				<div className='cf-list-unit'>
+																					<span className='names'>处方天数设置:</span>
+																					<InputNumber style={{width: 160}} value={state.cf_days} onChange={e=>this.setState({cf_days: e})} placeholder='输入处方天数' maxLength={4} max={100} min={1} precision={0} />
+																				</div>
+																			</React.Fragment>:null
+																	}
+																	<Placeholder height={15} />
+																	<div className='cf-list-unit'>
+																		<span className='names'>处方折扣信息:</span>
+																		<Select
+																			className='sel rex-fl'
+																			showSearch
+																			optionFilterProp='label'
+																			placeholder={'选择处方折扣'}
+																			value={state.coupon_data_id}
+																			style={{ width: 160, textIndent: 0 }}
+																			notFoundContent={false?<Spin size="small" />:null}
+																			onChange={(v)=>this.setState({coupon_data_id: v})}
+																		>
+																			{
+																				state.coupon_data.map(v=>{
+																					return (
+																						<Option key={v.value} value={v.value} label={v.keys}>{v.label}</Option>
+																					);
+																				})
+																			}
+																		</Select>
+																	</div>
+																	<Placeholder height={15} />
+																	<div className='cf-list-unit'>
+																		<span className='names'>处方单价信息:</span>
+																		<Input
+																			className='sel rex-fl'
+																			value={'￥'+unit_money}
+																			style={{ width: 160, textIndent: 0 }}
+																			readOnly
+																		/>
+																	</div>
+																	<Placeholder height={15} />
+																	<div className='cf-list-unit'>
+																		<span className='names'>处方总价信息:</span>
+																		<Input
+																			className='sel rex-fl'
+																			value={'￥'+real_money}
+																			style={{ width: 160, textIndent: 0 }}
+																			readOnly
+																		/>
+																	</div>
+																	<Placeholder height={15} />
+																	<div className='cf-list-unit'>
+																		<span className='names'>处方优惠金额:</span>
+																		<Input
+																			className='sel rex-fl'
+																			value={'￥'+youhui_money}
+																			style={{ width: 160, textIndent: 0 }}
+																			readOnly
+																		/>
 																	</div>
 																</React.Fragment>:null
 														}
-														<Placeholder height={15} />
-														<div className='cf-list-unit'>
-															<span className='names'>处方折扣信息:</span>
-															<Select
-																className='sel rex-fl'
-																showSearch
-																optionFilterProp='label'
-																placeholder={'选择处方折扣'}
-																value={state.coupon_data_id}
-																style={{ width: 160, textIndent: 0 }}
-																notFoundContent={false?<Spin size="small" />:null}
-																onChange={(v)=>this.setState({coupon_data_id: v})}
-															>
-																{
-																	state.coupon_data.map(v=>{
-																		return (
-																			<Option key={v.value} value={v.value} label={v.keys}>{v.label}</Option>
-																		);
-																	})
-																}
-															</Select>
-														</div>
-														<Placeholder height={15} />
-														<div className='cf-list-unit'>
-															<span className='names'>处方单价信息:</span>
-															<Input
-																className='sel rex-fl'
-																value={'￥'+unit_money}
-																style={{ width: 160, textIndent: 0 }}
-																readOnly
-															/>
-														</div>
-														<Placeholder height={15} />
-														<div className='cf-list-unit'>
-															<span className='names'>处方总价信息:</span>
-															<Input
-																className='sel rex-fl'
-																value={'￥'+real_money}
-																style={{ width: 160, textIndent: 0 }}
-																readOnly
-															/>
-														</div>
-														<Placeholder height={15} />
-														<div className='cf-list-unit'>
-															<span className='names'>处方优惠金额:</span>
-															<Input
-																className='sel rex-fl'
-																value={'￥'+youhui_money}
-																style={{ width: 160, textIndent: 0 }}
-																readOnly
-															/>
-														</div>
+														{
+															state.me_type==='3'?
+																<React.Fragment>
+																	<div className='cf-list-unit'>
+																		<span className='names'>自购处方清单内容:</span>
+																		<Input.TextArea style={{width: 320}} value={state.zigouTEXT} onChange={e=>this.setState({zigouTEXT: e.target.value})} placeholder='输入自购处方清单内容，如: 阿莫西林(3盒)，奥美拉唑(2盒)，莫沙必利(1盒)' autoSize={{ minRows: 3, maxRows: 6 }} />
+																	</div>
+																	<Placeholder height={15} />
+																	<div className='cf-list-unit'>
+																		<span className='names'>自购处方服用方式:</span>
+																		<Select
+																			className='sel rex-fl'
+																			value={state.drinkStyle_id}
+																			placeholder={'选择自购处方服用方式'}
+																			showSearch
+																			optionFilterProp='label'
+																			style={{ width: 160, textIndent: 0 }}
+																			onChange={(v)=>this.setState({drinkStyle_id: v})}
+																		>
+																			{
+																				state.drinkStyle.map(v=>{
+																					// 拼 音 码 -> GetJP || 拼音全码 -> GetQP || 混 拼 码 -> GetHP
+																					const hunpinCode= window.Pinyin.GetJP(v.name);
+																					return(
+																						<Option key={v.id} value={v.id} label={hunpinCode}>{v.name}</Option>
+																					);
+																				})
+																			}
+																		</Select>
+																	</div>
+																</React.Fragment>:null
+														}
+														{
+															state.me_type==='4'?
+																<React.Fragment>
+																	<div className='cf-list-unit'>
+																		<span className='names'>选择外用药:</span>
+																		<Select
+																			mode="multiple"
+																			className='sel rex-fl'
+																			value={state.waiyongListID}
+																			placeholder={'选择外用药'}
+																			showSearch
+																			optionFilterProp='label'
+																			style={{ width: 320, textIndent: 0 }}
+																			onChange={(v)=>this.setState({waiyongListID: v})}
+																		>
+																			{
+																				state.waiyongList.map(v=>{
+																					// 拼 音 码 -> GetJP || 拼音全码 -> GetQP || 混 拼 码 -> GetHP
+																					const hunpinCode= v.letters.join(',');
+																					return(
+																						<Option key={v.id} value={v.id} label={hunpinCode}>{v.name}</Option>
+																					);
+																				})
+																			}
+																		</Select>
+																	</div>
+																	<Placeholder height={15} />
+																	<div className='cf-list-unit'>
+																		<span className='names'>外用药个数:</span>
+																		<Input style={{width: 320}} value={state.waiyongNums} onChange={e=>this.setState({waiyongNums: e.target.value})} placeholder='输入外用药个数(阿拉伯数字), 英文逗号分开, 如: 1, 2, 3' />
+																	</div>
+																	<Placeholder height={15} />
+																	<div className='cf-list-unit'>
+																		<span className='names'>外用药使用方式:</span>
+																		<Select
+																			className='sel rex-fl'
+																			value={state.drinkStyle_id}
+																			placeholder={'选择外用药使用方式'}
+																			showSearch
+																			optionFilterProp='label'
+																			style={{ width: 160, textIndent: 0 }}
+																			onChange={(v)=>this.setState({drinkStyle_id: v})}
+																		>
+																			{
+																				state.drinkStyle.map(v=>{
+																					// 拼 音 码 -> GetJP || 拼音全码 -> GetQP || 混 拼 码 -> GetHP
+																					const hunpinCode= window.Pinyin.GetJP(v.name);
+																					return(
+																						<Option key={v.id} value={v.id} label={hunpinCode}>{v.name}</Option>
+																					);
+																				})
+																			}
+																		</Select>
+																	</div>
+																</React.Fragment>:null
+														}
 														{
 															state.me_type === '0' || state.me_type === 0?
 																<React.Fragment>
@@ -3251,6 +3547,7 @@ class Prescribe extends React.Component {
 																			<div className="label-forms rex-fl">
 																				<Select
 																					showSearch
+																					mode="multiple"
 																					placeholder='请选择治法治则'
 																					optionFilterProp='label'
 																					style={{width: 410}}
@@ -3260,7 +3557,7 @@ class Prescribe extends React.Component {
 																					{
 																						state.treatment_list.map(v=>{
 																							// 拼 音 码 -> GetJP || 拼音全码 -> GetQP || 混 拼 码 -> GetHP
-																							const hunpinCode= window.Pinyin.GetJP(v.name);
+																							const hunpinCode= v.letters.join(',');
 																							return(
 																								<Option key={v.id} value={v.id} label={hunpinCode}>{v.name}</Option>
 																							);
@@ -3277,6 +3574,7 @@ class Prescribe extends React.Component {
 																			<div className="label-forms rex-fl">
 																				<Select
 																					showSearch
+																					mode="multiple"
 																					placeholder='请选择中医诊断'
 																					optionFilterProp='label'
 																					style={{width: 410}}
@@ -3286,7 +3584,7 @@ class Prescribe extends React.Component {
 																					{
 																						state.diagnosis.map(v=>{
 																							// 拼 音 码 -> GetJP || 拼音全码 -> GetQP || 混 拼 码 -> GetHP
-																							const hunpinCode= window.Pinyin.GetJP(v.name);
+																							const hunpinCode= v.letters.join(',');
 																							return(
 																								<Option key={v.id} value={v.id} label={hunpinCode}>{v.name}</Option>
 																							);
@@ -3303,6 +3601,7 @@ class Prescribe extends React.Component {
 																			<div className="label-forms rex-fl">
 																				<Select
 																					showSearch
+																					mode="multiple"
 																					placeholder='请选择中医证型'
 																					optionFilterProp='label'
 																					style={{width: 410}}
@@ -3312,7 +3611,7 @@ class Prescribe extends React.Component {
 																					{
 																						state.tcm_list.map(v=>{
 																							// 拼 音 码 -> GetJP || 拼音全码 -> GetQP || 混 拼 码 -> GetHP
-																							const hunpinCode= window.Pinyin.GetJP(v.name);
+																							const hunpinCode= v.letters.join(',');
 																							return(
 																								<Option key={v.id} value={v.id} label={hunpinCode}>{v.name}</Option>
 																							);
@@ -3329,6 +3628,7 @@ class Prescribe extends React.Component {
 																			<div className="label-forms rex-fl">
 																				<Select
 																					showSearch
+																					mode="multiple"
 																					placeholder='请选择西医诊断'
 																					optionFilterProp='label'
 																					style={{width: 410}}
@@ -3338,7 +3638,7 @@ class Prescribe extends React.Component {
 																					{
 																						state.western_list.map(v=>{
 																							// 拼 音 码 -> GetJP || 拼音全码 -> GetQP || 混 拼 码 -> GetHP
-																							const hunpinCode= window.Pinyin.GetJP(v.name);
+																							const hunpinCode= v.letters.join(',');
 																							return(
 																								<Option key={v.id} value={v.id} label={hunpinCode}>{v.name}</Option>
 																							);
@@ -3700,6 +4000,7 @@ class Prescribe extends React.Component {
 																			<div className="label-forms rex-fl">
 																				<Select
 																					showSearch
+																					mode="multiple"
 																					placeholder='请选择治法治则'
 																					optionFilterProp='label'
 																					style={{width: 410}}
@@ -3709,7 +4010,7 @@ class Prescribe extends React.Component {
 																					{
 																						state.treatment_list.map(v=>{
 																							// 拼 音 码 -> GetJP || 拼音全码 -> GetQP || 混 拼 码 -> GetHP
-																							const hunpinCode= window.Pinyin.GetJP(v.name);
+																							const hunpinCode= v.letters.join(',');
 																							return(
 																								<Option key={v.id} value={v.id} label={hunpinCode}>{v.name}</Option>
 																							);
@@ -3726,6 +4027,7 @@ class Prescribe extends React.Component {
 																			<div className="label-forms rex-fl">
 																				<Select
 																					showSearch
+																					mode="multiple"
 																					placeholder='请选择中医诊断'
 																					optionFilterProp='label'
 																					style={{width: 410}}
@@ -3735,7 +4037,7 @@ class Prescribe extends React.Component {
 																					{
 																						state.diagnosis.map(v=>{
 																							// 拼 音 码 -> GetJP || 拼音全码 -> GetQP || 混 拼 码 -> GetHP
-																							const hunpinCode= window.Pinyin.GetJP(v.name);
+																							const hunpinCode= v.letters.join(',');
 																							return(
 																								<Option key={v.id} value={v.id} label={hunpinCode}>{v.name}</Option>
 																							);
@@ -3752,6 +4054,7 @@ class Prescribe extends React.Component {
 																			<div className="label-forms rex-fl">
 																				<Select
 																					showSearch
+																					mode="multiple"
 																					placeholder='请选择中医证型'
 																					optionFilterProp='label'
 																					style={{width: 410}}
@@ -3761,7 +4064,7 @@ class Prescribe extends React.Component {
 																					{
 																						state.tcm_list.map(v=>{
 																							// 拼 音 码 -> GetJP || 拼音全码 -> GetQP || 混 拼 码 -> GetHP
-																							const hunpinCode= window.Pinyin.GetJP(v.name);
+																							const hunpinCode= v.letters.join(',');
 																							return(
 																								<Option key={v.id} value={v.id} label={hunpinCode}>{v.name}</Option>
 																							);
@@ -3778,6 +4081,7 @@ class Prescribe extends React.Component {
 																			<div className="label-forms rex-fl">
 																				<Select
 																					showSearch
+																					mode="multiple"
 																					placeholder='请选择西医诊断'
 																					optionFilterProp='label'
 																					style={{width: 410}}
@@ -3787,7 +4091,7 @@ class Prescribe extends React.Component {
 																					{
 																						state.western_list.map(v=>{
 																							// 拼 音 码 -> GetJP || 拼音全码 -> GetQP || 混 拼 码 -> GetHP
-																							const hunpinCode= window.Pinyin.GetJP(v.name);
+																							const hunpinCode= v.letters.join(',');
 																							return(
 																								<Option key={v.id} value={v.id} label={hunpinCode}>{v.name}</Option>
 																							);
