@@ -335,7 +335,7 @@ class Prescribe extends React.Component {
 			$http.get(API.zyzxList, {
 				name,
 				pn: 1,
-				cn: 10
+				cn: 1000
 			}).then(res=>{
 				if (res.data.code === 200){
 					this.setState({
@@ -348,7 +348,7 @@ class Prescribe extends React.Component {
 			$http.get(API.treatmentList, {
 				name,
 				pn: 1,
-				cn: 10
+				cn: 1000
 			}).then(res=>{
 				if (res.data.code === 200) {
 					this.setState({
@@ -361,7 +361,7 @@ class Prescribe extends React.Component {
 			$http.get(API.westerndiagnosisList, {
 				name,
 				pn: 1,
-				cn: 10
+				cn: 1000
 			}).then(res=>{
 				if (res.data.code === 200){
 					this.setState({
@@ -2272,6 +2272,7 @@ class Prescribe extends React.Component {
 																	state.treatment_list.map(v=>{
 																		// 拼 音 码 -> GetJP || 拼音全码 -> GetQP || 混 拼 码 -> GetHP
 																		const hunpinCode= window.Pinyin.GetJP(v.name);
+																		console.log(hunpinCode);
 																		return(
 																			<Option key={v.id} value={v.id} label={hunpinCode}>{v.name}</Option>
 																		);
