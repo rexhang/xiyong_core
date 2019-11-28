@@ -1747,7 +1747,7 @@ class Prescribe extends React.Component {
 				drug_group_id: '',
 				drugs: [],
 				remark: '',
-				zhekou_id: '100',
+				zhekou_id: coupon_data_id,
 				private: cf_private?'1':'0',
 				nums: '0',
 				thumb: 'default_thumb',
@@ -2197,6 +2197,21 @@ class Prescribe extends React.Component {
 		}
 
 		youhui_money = state.coupon_data_id*1 === 100?0:window.Math.abs(state.cf_nums * 1 * (unit_money * 1) - real_money*1).toFixed(2);
+
+		let waiyongPrice = 0, youhuiPrice = 0;
+		if(this.state.waiyongListID.length>0 && this.state.waiyongList.length>0){
+			this.state.waiyongListID.forEach((priceObj, priceIndex)=>{
+				if (this.state.waiyongNums.split(',').length === this.state.waiyongListID.length){
+					const numPrice = this.state.waiyongNums.split(',')[priceIndex]?window.parseInt(this.state.waiyongNums.split(',')[priceIndex]):0;
+
+					waiyongPrice += this.state.waiyongList.find(vo=>vo.id.toString()===priceObj.toString()).price * 1 * numPrice;
+				}
+			});
+			const zhekou = this.state.coupon_data_id * 1 / 100;
+			youhuiPrice = waiyongPrice;
+			waiyongPrice = waiyongPrice * zhekou;
+			youhuiPrice = youhuiPrice - waiyongPrice;
+		}
 
 		return (
 			<div className="Prescribe" id='Prescribe'>
@@ -3405,7 +3420,7 @@ class Prescribe extends React.Component {
 																					// 拼 音 码 -> GetJP || 拼音全码 -> GetQP || 混 拼 码 -> GetHP
 																					const hunpinCode= v.letters.join(',');
 																					return(
-																						<Option key={v.id} value={v.id} label={hunpinCode}>{v.name}</Option>
+																						<Option key={v.id} value={v.id} label={hunpinCode}>{v.name}{`(${v.price}元)`}</Option>
 																					);
 																				})
 																			}
@@ -3438,6 +3453,48 @@ class Prescribe extends React.Component {
 																				})
 																			}
 																		</Select>
+																	</div>
+																	<Placeholder height={15} />
+																	<div className='cf-list-unit'>
+																		<span className='names'>处方折扣信息:</span>
+																		<Select
+																			className='sel rex-fl'
+																			showSearch
+																			optionFilterProp='label'
+																			placeholder={'选择处方折扣'}
+																			value={state.coupon_data_id}
+																			style={{ width: 160, textIndent: 0 }}
+																			notFoundContent={false?<Spin size="small" />:null}
+																			onChange={(v)=>this.setState({coupon_data_id: v})}
+																		>
+																			{
+																				state.coupon_data.map(v=>{
+																					return (
+																						<Option key={v.value} value={v.value} label={v.keys}>{v.label}</Option>
+																					);
+																				})
+																			}
+																		</Select>
+																	</div>
+																	<Placeholder height={15} />
+																	<div className='cf-list-unit'>
+																		<span className='names'>处方价格信息:</span>
+																		<Input
+																			className='sel rex-fl'
+																			value={'￥'+waiyongPrice}
+																			style={{ width: 160, textIndent: 0 }}
+																			readOnly
+																		/>
+																	</div>
+																	<Placeholder height={15} />
+																	<div className='cf-list-unit'>
+																		<span className='names'>处方优惠金额:</span>
+																		<Input
+																			className='sel rex-fl'
+																			value={'￥'+youhuiPrice}
+																			style={{ width: 160, textIndent: 0 }}
+																			readOnly
+																		/>
 																	</div>
 																</React.Fragment>:null
 														}
