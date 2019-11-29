@@ -40,6 +40,8 @@ $grayColor: #e5e4e4;
                     border: 1px solid $grayColor;
                     border-top: 0;
                     float: left;
+	                max-height: 400px;
+	                overflow-y: auto;
                     .rex-item-hover{
                         padding-left: 15px;
                         padding-right: 15px;

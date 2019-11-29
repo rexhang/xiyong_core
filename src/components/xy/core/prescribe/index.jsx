@@ -50,7 +50,7 @@ const { TabPane } = Tabs;
 
 class Prescribe extends React.Component {
 
-	static searchUserPageSize = 5;
+	static searchUserPageSize = 10;
 
 	static blPageSize = 3;
 
@@ -272,7 +272,9 @@ class Prescribe extends React.Component {
 		zigouTEXT: '',
 		waiyongNums: '',
 		waiyongListID: [],
-		waiyongList: []
+		waiyongList: [],
+		waiyong2ListID: undefined,
+		waiyong2List: []
 	};
 
 	searchbox = null;
@@ -287,6 +289,7 @@ class Prescribe extends React.Component {
 		this.dataCenter.getDrugs2();
 		this.dataCenter.getXuewei();
 		this.dataCenter.getWaiyongList();
+		this.dataCenter.getWaiyongList('0');
 		this.dataCenter.getTcms();
 		this.dataCenter.getTreatmentList();
 		this.dataCenter.getWests();
@@ -337,16 +340,21 @@ class Prescribe extends React.Component {
 				}
 			});
 		},
-		getWaiyongList: (name='') => {
+		getWaiyongList: (is_complete='1', name='') => {
 			$http.get(API.outsideDrugsList, {
 				name,
+				is_complete,
 				pn: 1,
 				cn: 1000
 			}).then(res=>{
 				if (res.data.code === 200){
-					this.setState({
-						waiyongList: res.data.data.list
-					});
+					let setOBJ = {};
+					if (is_complete === '1'){
+						setOBJ.waiyongList = res.data.data.list;
+					} else if (is_complete === '0') {
+						setOBJ.waiyong2List = res.data.data.list;
+					}
+					this.setState(setOBJ);
 				}
 			});
 		},
@@ -470,8 +478,19 @@ class Prescribe extends React.Component {
 				keyword
 			}).then(res=>{
 				if (res.data.code === 200){
+					// 只有当数据量长度为1的时候 才去找寻子账号并显示 开源节流
+					let resDATA = res.data.data.list;
+					if (res.data.data.list.length === 1){
+						const CHILDS = res.data.data.list[0].childs.map(val=>{
+							return {
+								...val,
+								mobile: res.data.data.list[0].mobile
+							};
+						});
+						resDATA = [...resDATA, ...CHILDS];
+					}
 					this.setState({
-						user_list: res.data.data.list
+						user_list: resDATA
 					}, ()=>{
 						this.setState({
 							searchLoading: false
@@ -657,7 +676,7 @@ class Prescribe extends React.Component {
 					setObj.zigouTEXT = datas.self_purchase_drugs;
 				}
 				if (datas.drug_group_type === '4') {
-					// 外用药 才有self_purchase_drugs marks
+					// 外用药
 					if (datas.outter_drugs.length > 0 ){
 						let waiyongListID = [];
 						let waiyongNums = [];
@@ -667,6 +686,12 @@ class Prescribe extends React.Component {
 						});
 						setObj.waiyongListID = waiyongListID;
 						setObj.waiyongNums = waiyongNums.join(',');
+					}
+				}
+				if (datas.drug_group_type === '6') {
+					// 外用药
+					if (datas.outter_drugs.length > 0 ){
+						setObj.waiyong2ListID = datas.outter_drugs[0].id;
 					}
 				}
 				if (datas.drug_group_type === '2') {
@@ -712,10 +737,11 @@ class Prescribe extends React.Component {
 						};
 					});
 				} else {
-					setObj.cf_info_list = [
+					/*setObj.cf_info_list = [
 						{drug_id: undefined, weight: '', price: 0, empty: false},
 						{drug_id: undefined, weight: '', price: 0, empty: false}
-					];
+					];*/
+					setObj.cf_info_list = [];
 				}
 				// 搜索用数据
 				if (datas.drugs.length>0) {
@@ -1503,6 +1529,14 @@ class Prescribe extends React.Component {
 				showCFInputs: false,
 				me_type: value
 			});
+		} else if (value === '6'){
+			// 切换为外用药2
+			logjs.info('外用药2');
+			this.setState({
+				hide_cf_list: false,
+				showCFInputs: false,
+				me_type: value
+			});
 		}
 	};
 
@@ -1772,6 +1806,100 @@ class Prescribe extends React.Component {
 			} else {
 				// 新建
 				this.dataCenter.saveCfContent(postdata4, (code)=>{
+					// 刷新获取处方列表接口
+					this.dataCenter.getcfList(1, this.state.formQueryDatas.disease_record_id);
+					Modal.success({
+						title: '处方开具成功',
+						content: '处方取货码: 『'+code+'』',
+						okText: '关闭',
+						onOk: () => {
+							this.exitStage2();
+						}
+					});
+				});
+			}
+			return false;
+		}
+
+		if (me_type === '6'){
+			// 外用6
+			// 处方清单内容 && 服用方式检测 && drugs 检测
+			if (!this.state.waiyong2ListID){
+				message.warn('请选择外用药~');
+				return false;
+			}
+			if (!(window.parseInt(cf_nums) >= 1)) {
+				message.warn('选择设置正确的处方付数');
+				return false;
+			}
+			if (!this.checkEmpty(drinkStyle_id)) {
+				message.warn('选择正确的服用方式');
+				return false;
+			}
+			// let outter_drugs = [{id: num}];
+			// drugs = '['+drugs.join(',')+']';
+			let outter_drugs = [window.JSON.stringify({id: this.state.waiyong2ListID, num: cf_nums})];
+			outter_drugs = '['+outter_drugs.join(',')+']';
+
+			// 空药材内容检测并且自动去重
+			let _drugs = [];
+			cf_info_list.forEach(val=>{
+				if (val.weight && val.drug_id){
+					_drugs.push(val);
+				}
+			});
+			// console.log(_drugs);
+			let drugs = _drugs.map(val=>{
+				return window.JSON.stringify({
+					id: val.drug_id,
+					weight: val.weight
+				});
+			});
+			drugs = '['+drugs.join(',')+']';
+
+			// 仅针对本类药类型药物重复检测
+			const drug_ids = cf_info_list.map(v=>{
+				return v.drug_id;
+			});
+			if (drug_ids.length !== window.Array.from(new Set(drug_ids)).length) {
+				// 出现重复
+				message.warn('成分表中出现重复药材，请统一后重试', 1.2);
+				return false;
+			}
+
+			let postdata6 = {
+				patient_id: this.state.currentUserInfo.id,
+				disease_record_id: this.state.formQueryDatas.disease_record_id,
+				drug_group_type: '6',
+				taking_method: drinkStyle_id,
+				drug_group_id: '',
+				drugs,
+				remark: '',
+				zhekou_id: coupon_data_id,
+				private: cf_private?'1':'0',
+				nums: cf_nums,
+				thumb: 'default_thumb',
+				poster: 'default_poster',
+				outter_drugs
+			};
+			if (this.cfEditId !== null) {
+				// 编辑
+				postdata6.prescription_id = this.cfEditId;
+				this.dataCenter.saveCfContent(postdata6, ()=>{
+					// 刷新获取处方列表接口
+					this.dataCenter.getcfList(1, this.state.formQueryDatas.disease_record_id);
+					Modal.success({
+						title: '提示',
+						content: '处方更新成功',
+						okText: '关闭',
+						onOk: () => {
+							// this.exitStage2();
+						}
+					});
+				}, 'edit');
+			} else {
+				// 新建
+				this.dataCenter.saveCfContent(postdata6, (code)=>{
 					// 刷新获取处方列表接口
 					this.dataCenter.getcfList(1, this.state.formQueryDatas.disease_record_id);
 					Modal.success({
@@ -2907,6 +3035,8 @@ class Prescribe extends React.Component {
 																		mode_name = '自购药';
 																	} else if (item.drug_group_type === '4') {
 																		mode_name = '外用药';
+																	} else if (item.drug_group_type === '6') {
+																		mode_name = '外用药(成分)';
 																	}
 																	const ll_progress = `(理疗进度: ${item.done_nums}/${item.nums})`;
 																	return (
@@ -3265,12 +3395,13 @@ class Prescribe extends React.Component {
 																<Radio value={'5'}>成药</Radio>
 																<Radio value={'2'}>成品药</Radio>
 																<Radio value={'3'}>自购药</Radio>
-																<Radio value={'4'}>外用药</Radio>
+																<Radio value={'4'}>外用药(成品)</Radio>
+																<Radio value={'6'}>外用药(成分)</Radio>
 															</Radio.Group>
 														</div>
 														<Placeholder height={15} />
 														{
-															state.showCFInputs && state.me_type!=='3' && state.me_type!==3 && state.me_type!=='4' && state.me_type!==4?
+															state.showCFInputs && state.me_type!=='3' && state.me_type!==3 && state.me_type!=='4' && state.me_type!==4 && state.me_type!=='6' && state.me_type!==6?
 																<React.Fragment>
 																	<div className='cf-list-unit'>
 																		<span className='names'>处方服用方式:</span>
@@ -3440,7 +3571,7 @@ class Prescribe extends React.Component {
 																			placeholder={'选择外用药使用方式'}
 																			showSearch
 																			optionFilterProp='label'
-																			style={{ width: 160, textIndent: 0 }}
+																			style={{ width: 220, textIndent: 0 }}
 																			onChange={(v)=>this.setState({drinkStyle_id: v})}
 																		>
 																			{
@@ -3495,6 +3626,83 @@ class Prescribe extends React.Component {
 																			style={{ width: 160, textIndent: 0 }}
 																			readOnly
 																		/>
+																	</div>
+																</React.Fragment>:null
+														}
+														{
+															state.me_type==='6'?
+																<React.Fragment>
+																	<div className='cf-list-unit'>
+																		<span className='names'>请选择外用药:</span>
+																		<Select
+																			className='sel rex-fl'
+																			value={state.waiyong2ListID}
+																			placeholder={'选择外用药'}
+																			showSearch
+																			optionFilterProp='label'
+																			style={{ width: 220, textIndent: 0 }}
+																			onChange={(v)=>this.setState({waiyong2ListID: v})}
+																		>
+																			{
+																				state.waiyong2List.map(v=>{
+																					// 拼 音 码 -> GetJP || 拼音全码 -> GetQP || 混 拼 码 -> GetHP
+																					const hunpinCode= v.letters.join(',');
+																					return(
+																						<Option key={v.id} value={v.id} label={hunpinCode}>{v.name}</Option>
+																					);
+																				})
+																			}
+																		</Select>
+																	</div>
+																	<Placeholder height={15} />
+																	<div className='cf-list-unit'>
+																		<span className='names'>处方付数设置:</span>
+																		<InputNumber style={{width: 220}} value={state.cf_nums} onChange={e=>this.setState({cf_nums: e})} placeholder='输入处方付数' maxLength={4} max={100} min={1} precision={0} />
+																	</div>
+																	<Placeholder height={15} />
+																	<div className='cf-list-unit'>
+																		<span className='names'>外用使用方式:</span>
+																		<Select
+																			className='sel rex-fl'
+																			value={state.drinkStyle_id}
+																			placeholder={'选择外用药使用方式'}
+																			showSearch
+																			optionFilterProp='label'
+																			style={{ width: 220, textIndent: 0 }}
+																			onChange={(v)=>this.setState({drinkStyle_id: v})}
+																		>
+																			{
+																				state.drinkStyle.map(v=>{
+																					// 拼 音 码 -> GetJP || 拼音全码 -> GetQP || 混 拼 码 -> GetHP
+																					const hunpinCode= window.Pinyin.GetJP(v.name);
+																					return(
+																						<Option key={v.id} value={v.id} label={hunpinCode}>{v.name}</Option>
+																					);
+																				})
+																			}
+																		</Select>
+																	</div>
+																	<Placeholder height={15} />
+																	<div className='cf-list-unit'>
+																		<span className='names'>处方折扣信息:</span>
+																		<Select
+																			className='sel rex-fl'
+																			showSearch
+																			optionFilterProp='label'
+																			placeholder={'选择处方折扣'}
+																			value={state.coupon_data_id}
+																			style={{ width: 160, textIndent: 0 }}
+																			notFoundContent={false?<Spin size="small" />:null}
+																			onChange={(v)=>this.setState({coupon_data_id: v})}
+																		>
+																			{
+																				state.coupon_data.map(v=>{
+																					return (
+																						<Option key={v.value} value={v.value} label={v.keys}>{v.label}</Option>
+																					);
+																				})
+																			}
+																		</Select>
 																	</div>
 																</React.Fragment>:null
 														}
