@@ -481,13 +481,15 @@ class Prescribe extends React.Component {
 					// 只有当数据量长度为1的时候 才去找寻子账号并显示 开源节流
 					let resDATA = res.data.data.list;
 					if (res.data.data.list.length === 1){
-						const CHILDS = res.data.data.list[0].childs.map(val=>{
-							return {
-								...val,
-								mobile: res.data.data.list[0].mobile
-							};
-						});
-						resDATA = [...resDATA, ...CHILDS];
+						if (window.Array.isArray(res.data.data.list[0].childs)){
+							const CHILDS = res.data.data.list[0].childs.map(val=>{
+								return {
+									...val,
+									mobile: res.data.data.list[0].mobile
+								};
+							});
+							resDATA = [...resDATA, ...CHILDS];
+						}
 					}
 					this.setState({
 						user_list: resDATA
