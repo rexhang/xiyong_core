@@ -5,7 +5,7 @@
 `node >= 9.10.0 npm >= 5.6.0`
 
 ### 开源协议
-[![npm](https://img.shields.io/npm/l/gitee-frontend.svg)](https://github.com/rexhang/xiyong_core/blob/master/LICENSE)
+[![npm](https://raw.githubusercontent.com/rexhang/xiyong_core/master/LICENSE.svg)](https://github.com/rexhang/xiyong_core/blob/master/LICENSE)
 
 ### 项目介绍
 Doctor-Core-Admin后台管理系统的开发
