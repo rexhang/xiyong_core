@@ -10,7 +10,7 @@
 [![npm](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/rexhang/xiyong_core/blob/master/LICENSE)
 
 ### 项目介绍
-Doctor-Core-Admin后台管理系统的开发
+[Doctor-Core-Admin]后台管理系统的开发
 
 ### 软件架构
 This project was bootstrapped with [Create React App](https://github.com/facebookincubator/create-react-app).
