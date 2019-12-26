@@ -1,11 +1,13 @@
 # Doctor-Core-Admin
 [Doctor-Core-Admin]是一个配合Doctor-Library-Admin使用的前台中医医疗就诊系统
 
-### 基础环境
-`node >= 9.10.0 npm >= 5.6.0`
+### 基础运行环境
+![node](https://img.shields.io/badge/node_version->=9.10.0-green.svg?style=plastic)
+
+![npm](https://img.shields.io/badge/npm_version->=5.6.0-green.svg?style=plastic)
 
 ### 开源协议
-[![npm](https://raw.githubusercontent.com/rexhang/xiyong_core/master/LICENSE.svg)](https://github.com/rexhang/xiyong_core/blob/master/LICENSE)
+[![npm](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/rexhang/xiyong_core/blob/master/LICENSE)
 
 ### 项目介绍
 Doctor-Core-Admin后台管理系统的开发
