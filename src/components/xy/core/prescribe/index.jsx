@@ -179,7 +179,7 @@ class Prescribe extends React.Component {
 		/*药物服用方式数据源*/
 		drinkStyle: [],
 		/*药物服用方式*/
-		drinkStyle_id: undefined,
+		drinkStyle_id: '3',
 		/*处方药物类型*/
 		me_type: '0',
 		/*处方备注信息*/
@@ -1483,6 +1483,10 @@ class Prescribe extends React.Component {
 			message.warn('您已勾选成品药, 不可切换其他类型');
 			return false;
 		}
+		let isCreate = true;
+		if(this.cfEditId !== null){
+			isCreate = false;
+		}
 		if (value === '5') {
 			// 如果切换成药, 成药字段必须有值
 			if (this.checkEmpty(this.state.drug_group_list_id)) {
@@ -1490,17 +1494,19 @@ class Prescribe extends React.Component {
 				this.setState({
 					hide_cf_list: true,
 					showCFInputs: true,
-					me_type: value
+					me_type: value,
+					drinkStyle_id: isCreate? '3' : this.state.drinkStyle_id
 				});
 			} else {
-				message.warn('采用成药必须选择');
+				message.warn('采用湯劑必须选择');
 				return false;
 			}
 		} else if (value === '0'){
 			this.setState({
 				hide_cf_list: false,
 				showCFInputs: true,
-				me_type: value
+				me_type: value,
+				drinkStyle_id: isCreate? '3' : this.state.drinkStyle_id
 			});
 		} else if (value === '2'){
 			// 如果切换成品药, 成品药字段必须有值
@@ -1509,19 +1515,21 @@ class Prescribe extends React.Component {
 				this.setState({
 					hide_cf_list: true,
 					showCFInputs: true,
-					me_type: value
+					me_type: value,
+					drinkStyle_id: isCreate? '3' : this.state.drinkStyle_id
 				});
 			} else {
-				message.warn('采用成品药必须选择');
+				message.warn('采用丸藥必须选择');
 				return false;
 			}
 		} else if (value === '3'){
-			// 切换为自购药
+			// 切换为自购药 如果自购药 drinkStyle_id: undefined, => drinkStyle_id: '19' 仅限于一上来就定向自购药 如果来回切换 不准确 因为各种类型都公用了`drinkStyle_id` 以下2个同理
 			logjs.info('自购药');
 			this.setState({
 				hide_cf_list: true,
 				showCFInputs: false,
-				me_type: value
+				me_type: value,
+				drinkStyle_id: isCreate? '19' : this.state.drinkStyle_id
 			});
 		} else if (value === '4'){
 			// 切换为外用药
@@ -1529,7 +1537,8 @@ class Prescribe extends React.Component {
 			this.setState({
 				hide_cf_list: true,
 				showCFInputs: false,
-				me_type: value
+				me_type: value,
+				drinkStyle_id: isCreate? '22' : this.state.drinkStyle_id
 			});
 		} else if (value === '6'){
 			// 切换为外用药2
@@ -1537,12 +1546,17 @@ class Prescribe extends React.Component {
 			this.setState({
 				hide_cf_list: false,
 				showCFInputs: false,
-				me_type: value
+				me_type: value,
+				drinkStyle_id: isCreate? '22' : this.state.drinkStyle_id
 			});
 		}
 	};
 
 	handleDrugGroup2Change = (v) => {
+		let isCreate = true;
+		if(this.cfEditId !== null){
+			isCreate = false;
+		}
 	    this.setState({
 		    drugData2_id: v
 	    }, () => {
@@ -1552,14 +1566,16 @@ class Prescribe extends React.Component {
 	    		this.setState({
 				    me_type: '2',
 				    hide_cf_list: true,
-				    me_type2_money: money
+				    me_type2_money: money,
+				    drinkStyle_id: isCreate? '3' : this.state.drinkStyle_id
 			    });
 		    } else {
 	    		// 回到默认
 			    this.setState({
 				    me_type: '0',
 				    hide_cf_list: false,
-				    me_type2_money: 0
+				    me_type2_money: 0,
+				    drinkStyle_id: isCreate? '3' : this.state.drinkStyle_id
 			    });
 		    }
 	    });
@@ -2596,40 +2612,6 @@ class Prescribe extends React.Component {
 												<Placeholder height={15} />
 												<div className="form-ctrls">
 													<div className="label-box rex-cf align-center">
-														<span className="label-name rex-fl w154">治法治则: </span>
-														<div className="label-forms rex-fl">
-															<Select
-																showSearch
-																mode="multiple"
-																placeholder='请选择治法治则'
-																optionFilterProp='label'
-																style={{width: 260}}
-																value={state.formQueryDatas.treatment_id}
-																onChange={(v) => this.handleForm('treatment_id', v)}
-															>
-																{
-																	state.treatment_list.map(v=>{
-																		// 拼 音 码 -> GetJP || 拼音全码 -> GetQP || 混 拼 码 -> GetHP
-																		const hunpinCode= v.letters.join(',');
-																		console.log(hunpinCode);
-																		return(
-																			<Option key={v.id} value={v.id} label={hunpinCode}>{v.name}</Option>
-																		);
-																	})
-																}
-															</Select>
-														</div>
-														<Placeholder width={10} />
-														<Spin spinning={state.addOpt1} tip={'数据提交中...'}>
-															<Input value={state.addOpt_val1} onChange={e=>this.setState({addOpt_val1: e.target.value})} onPressEnter={(e)=>{
-																this.dataCenter.createOpts(e.target.value, 1);
-															}} placeholder='新增治法治则选项' style={{width: 140}} />
-														</Spin>
-													</div>
-												</div>
-												<Placeholder height={15} />
-												<div className="form-ctrls">
-													<div className="label-box rex-cf align-center">
 														<span className="label-name rex-fl w154">中医诊断: </span>
 														<div className="label-forms rex-fl">
 															<Select
@@ -2690,6 +2672,40 @@ class Prescribe extends React.Component {
 															<Input value={state.addOpt_val3} onChange={e=>this.setState({addOpt_val3: e.target.value})} onPressEnter={(e)=>{
 																this.dataCenter.createOpts(e.target.value, 3);
 															}} placeholder='新增中医证型选项' style={{width: 140}} />
+														</Spin>
+													</div>
+												</div>
+												<Placeholder height={15} />
+												<div className="form-ctrls">
+													<div className="label-box rex-cf align-center">
+														<span className="label-name rex-fl w154">治法治则: </span>
+														<div className="label-forms rex-fl">
+															<Select
+																showSearch
+																mode="multiple"
+																placeholder='请选择治法治则'
+																optionFilterProp='label'
+																style={{width: 260}}
+																value={state.formQueryDatas.treatment_id}
+																onChange={(v) => this.handleForm('treatment_id', v)}
+															>
+																{
+																	state.treatment_list.map(v=>{
+																		// 拼 音 码 -> GetJP || 拼音全码 -> GetQP || 混 拼 码 -> GetHP
+																		const hunpinCode= v.letters.join(',');
+																		console.log(hunpinCode);
+																		return(
+																			<Option key={v.id} value={v.id} label={hunpinCode}>{v.name}</Option>
+																		);
+																	})
+																}
+															</Select>
+														</div>
+														<Placeholder width={10} />
+														<Spin spinning={state.addOpt1} tip={'数据提交中...'}>
+															<Input value={state.addOpt_val1} onChange={e=>this.setState({addOpt_val1: e.target.value})} onPressEnter={(e)=>{
+																this.dataCenter.createOpts(e.target.value, 1);
+															}} placeholder='新增治法治则选项' style={{width: 140}} />
 														</Spin>
 													</div>
 												</div>
@@ -3040,10 +3056,11 @@ class Prescribe extends React.Component {
 																	} else if (item.drug_group_type === '6') {
 																		mode_name = '外用药(成分)';
 																	}
-																	const ll_progress = `(理疗进度: ${item.done_nums}/${item.nums})`;
+																	const ll_progress = `(理疗进度: ${item.done_nums}/${item.nums}) 理疗穴位: ${item.acupoints.length>0?item.acupoints.join('、'):'无'} 理疗名称: ${item.liliao_name}`;
 																	return (
 																		<List.Item
 																			actions={[
+																				<Input onPressEnter={e=>console.log(e.target.value)} placeholder='处方标记信息处' style={{width: 220}} />,
 																				<Input onPressEnter={e=>this.dataCenter.PhysiotherapyRecord(e.target.value, item)} className={item.type === '1'?'':'rex-hide'} placeholder='进行一次理疗,填写操作医师名' style={{width: 220}} />,
 																				<Button type='primary' className={item.status==='20'||item.status===20?'':'rex-hide'} onClick={()=>this.rebackCF(item, _index)}>退款处理</Button>,
 																				<Button type='primary' onClick={()=>this.editCfInfo(item)}>查看/编辑处方</Button>,
@@ -3060,7 +3077,7 @@ class Prescribe extends React.Component {
 																						<br/>
 															支付状态: {item.status === '20' || item.status === 20?'已支付':item.status === '30' || item.status === 30?'已退款':'未支付'}
 																						<br/>
-															处方模式: {mode_name} {item.type === '1'?ll_progress:''}
+															处方模式: {mode_name} {item.type === '1'?<span>{ll_progress}</span>:''}
 																					</span>
 																				}
 																			/>
@@ -3121,8 +3138,22 @@ class Prescribe extends React.Component {
 											<TabPane tab="中医药处方" key="1">
 												<div className="choice-content rex-cf">
 													<div className="rex-fl">
+														<div className='cf-list-unit'>
+															<span className='names'>处方药物类型:</span>
+															<Radio.Group onChange={(e)=>this.handleMeTypeChange(e)} value={state.me_type}>
+																<Radio value={'0'}>草药</Radio>
+																<Radio value={'5'}>湯劑</Radio>
+																<Radio value={'2'}>丸藥</Radio>
+																<Radio value={'3'}>自购药</Radio>
+																<Radio value={'4'}>外用药(成品)</Radio>
+																<Radio value={'6'}>外用药(成分)</Radio>
+															</Radio.Group>
+															{/*成藥、成药改為湯劑，成品藥、成品药改為成品丸藥*/}
+														</div>
+														<Placeholder height={15} />
 														<div className="cy rex-cf">
-															<span className='rex-fl' style={{fontSize: 16, color: '#333'}}>采用成药:</span>
+															<span className='rex-fl' style={{fontSize: 16, color: '#333'}}>采用湯劑:</span>
+															{/*“采用成藥”“采用成药”改為“采用湯劑”*/}
 															<Select
 																className='rex-fl'
 																allowClear
@@ -3144,7 +3175,8 @@ class Prescribe extends React.Component {
 																}
 															</Select>
 															&nbsp;&nbsp;&nbsp;&nbsp;
-															<span className='rex-fl' style={{fontSize: 16, color: '#333'}}>采用成品药:</span>
+															<span className='rex-fl' style={{fontSize: 16, color: '#333'}}>采用丸藥:</span>
+															{/*“采用成品藥”“采用成品药”改為“采用丸藥”*/}
 															<Select
 																className='rex-fl'
 																allowClear
@@ -3216,7 +3248,7 @@ class Prescribe extends React.Component {
 																					// 添加一行
 																					window.setTimeout(()=>{
 																						this.addCfRows();
-																					}, 60);
+																					}, 35);
 																				}}
 																				onSearch={(val)=>{
 																					$http.get(API.drugGet, {
@@ -3388,18 +3420,6 @@ class Prescribe extends React.Component {
 														<div className='cf-list-unit'>
 															<span className='names'>是否保密处方:</span>
 															<Switch checkedChildren="是" unCheckedChildren="否" checked={state.cf_private} onChange={(v)=>this.setState({cf_private: v})} />
-														</div>
-														<Placeholder height={15} />
-														<div className='cf-list-unit'>
-															<span className='names'>处方药物类型:</span>
-															<Radio.Group onChange={(e)=>this.handleMeTypeChange(e)} value={state.me_type}>
-																<Radio value={'0'}>草药</Radio>
-																<Radio value={'5'}>成药</Radio>
-																<Radio value={'2'}>成品药</Radio>
-																<Radio value={'3'}>自购药</Radio>
-																<Radio value={'4'}>外用药(成品)</Radio>
-																<Radio value={'6'}>外用药(成分)</Radio>
-															</Radio.Group>
 														</div>
 														<Placeholder height={15} />
 														{
@@ -3810,33 +3830,6 @@ class Prescribe extends React.Component {
 																	<Placeholder height={15} />
 																	<div className="form-ctrls">
 																		<div className="label-box rex-cf align-center">
-																			<span className="label-name rex-fl w154">治法治则: </span>
-																			<div className="label-forms rex-fl">
-																				<Select
-																					showSearch
-																					mode="multiple"
-																					placeholder='请选择治法治则'
-																					optionFilterProp='label'
-																					style={{width: 410}}
-																					value={state.formQueryDatas.treatment_id}
-																					onChange={(v) => this.handleForm('treatment_id', v)}
-																				>
-																					{
-																						state.treatment_list.map(v=>{
-																							// 拼 音 码 -> GetJP || 拼音全码 -> GetQP || 混 拼 码 -> GetHP
-																							const hunpinCode= v.letters.join(',');
-																							return(
-																								<Option key={v.id} value={v.id} label={hunpinCode}>{v.name}</Option>
-																							);
-																						})
-																					}
-																				</Select>
-																			</div>
-																		</div>
-																	</div>
-																	<Placeholder height={15} />
-																	<div className="form-ctrls">
-																		<div className="label-box rex-cf align-center">
 																			<span className="label-name rex-fl w154">中医诊断: </span>
 																			<div className="label-forms rex-fl">
 																				<Select
@@ -3877,6 +3870,33 @@ class Prescribe extends React.Component {
 																				>
 																					{
 																						state.tcm_list.map(v=>{
+																							// 拼 音 码 -> GetJP || 拼音全码 -> GetQP || 混 拼 码 -> GetHP
+																							const hunpinCode= v.letters.join(',');
+																							return(
+																								<Option key={v.id} value={v.id} label={hunpinCode}>{v.name}</Option>
+																							);
+																						})
+																					}
+																				</Select>
+																			</div>
+																		</div>
+																	</div>
+																	<Placeholder height={15} />
+																	<div className="form-ctrls">
+																		<div className="label-box rex-cf align-center">
+																			<span className="label-name rex-fl w154">治法治则: </span>
+																			<div className="label-forms rex-fl">
+																				<Select
+																					showSearch
+																					mode="multiple"
+																					placeholder='请选择治法治则'
+																					optionFilterProp='label'
+																					style={{width: 410}}
+																					value={state.formQueryDatas.treatment_id}
+																					onChange={(v) => this.handleForm('treatment_id', v)}
+																				>
+																					{
+																						state.treatment_list.map(v=>{
 																							// 拼 音 码 -> GetJP || 拼音全码 -> GetQP || 混 拼 码 -> GetHP
 																							const hunpinCode= v.letters.join(',');
 																							return(
@@ -4263,33 +4283,6 @@ class Prescribe extends React.Component {
 																	<Placeholder height={15} />
 																	<div className="form-ctrls">
 																		<div className="label-box rex-cf align-center">
-																			<span className="label-name rex-fl w154">治法治则: </span>
-																			<div className="label-forms rex-fl">
-																				<Select
-																					showSearch
-																					mode="multiple"
-																					placeholder='请选择治法治则'
-																					optionFilterProp='label'
-																					style={{width: 410}}
-																					value={state.formQueryDatas.treatment_id}
-																					onChange={(v) => this.handleForm('treatment_id', v)}
-																				>
-																					{
-																						state.treatment_list.map(v=>{
-																							// 拼 音 码 -> GetJP || 拼音全码 -> GetQP || 混 拼 码 -> GetHP
-																							const hunpinCode= v.letters.join(',');
-																							return(
-																								<Option key={v.id} value={v.id} label={hunpinCode}>{v.name}</Option>
-																							);
-																						})
-																					}
-																				</Select>
-																			</div>
-																		</div>
-																	</div>
-																	<Placeholder height={15} />
-																	<div className="form-ctrls">
-																		<div className="label-box rex-cf align-center">
 																			<span className="label-name rex-fl w154">中医诊断: </span>
 																			<div className="label-forms rex-fl">
 																				<Select
@@ -4330,6 +4323,33 @@ class Prescribe extends React.Component {
 																				>
 																					{
 																						state.tcm_list.map(v=>{
+																							// 拼 音 码 -> GetJP || 拼音全码 -> GetQP || 混 拼 码 -> GetHP
+																							const hunpinCode= v.letters.join(',');
+																							return(
+																								<Option key={v.id} value={v.id} label={hunpinCode}>{v.name}</Option>
+																							);
+																						})
+																					}
+																				</Select>
+																			</div>
+																		</div>
+																	</div>
+																	<Placeholder height={15} />
+																	<div className="form-ctrls">
+																		<div className="label-box rex-cf align-center">
+																			<span className="label-name rex-fl w154">治法治则: </span>
+																			<div className="label-forms rex-fl">
+																				<Select
+																					showSearch
+																					mode="multiple"
+																					placeholder='请选择治法治则'
+																					optionFilterProp='label'
+																					style={{width: 410}}
+																					value={state.formQueryDatas.treatment_id}
+																					onChange={(v) => this.handleForm('treatment_id', v)}
+																				>
+																					{
+																						state.treatment_list.map(v=>{
 																							// 拼 音 码 -> GetJP || 拼音全码 -> GetQP || 混 拼 码 -> GetHP
 																							const hunpinCode= v.letters.join(',');
 																							return(

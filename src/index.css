@@ -63,3 +63,9 @@ div#stage{
 .theme-btn-green:hover, .theme-btn-green:active{
 	opacity: .8 !important;
 }
+
+/*修改默认下拉框高亮颜色*/
+li.ant-select-dropdown-menu-item.ant-select-dropdown-menu-item-active {
+	background-color: #51615d !important;
+	color: #fff;
+}
