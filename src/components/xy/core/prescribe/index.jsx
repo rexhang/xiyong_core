@@ -58,6 +58,8 @@ class Prescribe extends React.Component {
 
 	static dateformat = 'YYYY-MM-DD';
 
+	static CF_LIST_PageSize = 5;
+
 	SCALE = 1;
 
 	getBase64 = (file) => {
@@ -170,10 +172,9 @@ class Prescribe extends React.Component {
 		cfList_dates: [],
 		cfList_dates_cacheValue: undefined,
 		cfList_typings_cacheValue: {
-			value: undefined,
-			data: {}
+			value: 0,
+			data: {id: 0, mtype: 0, type: 0, name: '全部'}
 		},
-		cfList_total_page: 0,
 		/*处方内容是否保密*/
 		cf_private: true,
 		/*药物服用方式数据源*/
@@ -274,7 +275,9 @@ class Prescribe extends React.Component {
 		waiyongListID: [],
 		waiyongList: [],
 		waiyong2ListID: undefined,
-		waiyong2List: []
+		waiyong2List: [],
+		CF_LIST_PageCurrent: 1,
+		cfList_total_page: 0,
 	};
 
 	searchbox = null;
@@ -606,26 +609,28 @@ class Prescribe extends React.Component {
 				}
 			});
 		},
-		getcfList: (page=1, disease_record_id, date=null, typing=null) => {
+		getcfList: (page=1, disease_record_id) => {
+			// 获取处方列表
 			let queryParams = {
 				pn: page,
-				cn: 100,
+				cn: Prescribe.CF_LIST_PageSize,
 				disease_record_id
 			};
-			if (date){
-				queryParams.date = date;
+			if(this.state.cfList_dates_cacheValue !== undefined){
+				queryParams.date = this.state.cfList_dates_cacheValue;
 			}
+
+			const typingData = this.state.cfList_typings_cacheValue.data;
+
 			// 判断类型
-			if (typing){
-				if (typing.mtype === 1){
-					// 接口根据type判断 门诊 or 理疗
-					queryParams.type = typing.type;
-				}
-				if (typing.mtype === 2){
-					// 接口根据type判断 中草药 成药等
-					queryParams.drug_group_type = typing.type;
-					queryParams.type = 0;
-				}
+			if (typingData.mtype === 1){
+				// 接口根据type判断 门诊 or 理疗
+				queryParams.type = typingData.type;
+			}
+			if (typingData.mtype === 2){
+				// 接口根据type判断 中草药 成药等
+				queryParams.drug_group_type = typingData.type;
+				queryParams.type = 0;
 			}
 			$http.get(API.prescriptionListGet, queryParams).then(res=>{
 				let cfList_dates = res.data.data.dates;
@@ -643,7 +648,8 @@ class Prescribe extends React.Component {
 				this.setState({
 					cfList: res.data.data.list,
 					cfList_dates,
-					cfList_total_page: res.data.data.page.tc
+					cfList_total_page: res.data.data.page.tc,
+					CF_LIST_PageCurrent: res.data.data.page.pn,
 				});
 			});
 		},
@@ -1204,8 +1210,8 @@ class Prescribe extends React.Component {
 			activeKey: '1',
 			cfList_dates_cacheValue: undefined,
 			cfList_typings_cacheValue: {
-				value: undefined,
-				data: {}
+				value: 0,
+				data: {id: 0, mtype: 0, type: 0, name: '全部'}
 			}
 		});
 		this.pid = null;
@@ -1428,7 +1434,7 @@ class Prescribe extends React.Component {
 		}
 		confirm({
 			title: '提示',
-			content: '确定删除此病历簿吗？',
+			content: '确定删除此条处方吗？',
 			okText: '确认',
 			cancelText: '取消',
 			okType: 'danger',
@@ -1446,6 +1452,30 @@ class Prescribe extends React.Component {
 						this.setState({
 							cfList: _cfList
 						});
+					}
+				});
+			}
+		});
+	};
+
+	copyCF = (item, _index) => {
+		// console.log(item);
+	    // 复制处方
+		if (!item.id) {
+			return false;
+		}
+		confirm({
+			title: '提示',
+			content: `确定复制此条处方(取货码为${item.code})吗？`,
+			okText: '确认',
+			cancelText: '取消',
+			onOk: () => {
+				$http.post(API.prescriptionCopy, {
+					id: item.id
+				}).then(res=>{
+					if (res.data.code === 200) {
+						message.success('复制成功');
+						this.dataCenter.getcfList(1, this.state.formQueryDatas.disease_record_id);
 					}
 				});
 			}
@@ -2569,7 +2599,7 @@ class Prescribe extends React.Component {
 													<div className="label-box rex-cf">
 														<span className="label-name rex-fl w154">患者主诉: </span>
 														<div className="label-forms rex-fl">
-															<Input.TextArea style={{width: 410}} value={state.formQueryDatas.patient_desc} onChange={(v)=>this.handleForm('patient_desc', v.target.value)} placeholder='请输入患者主诉信息' autoSize={{ minRows: 2, maxRows: 6 }} />
+															<Input.TextArea style={{width: 410}} value={state.formQueryDatas.patient_desc} onChange={(v)=>this.handleForm('patient_desc', v.target.value)} placeholder='请输入患者主诉信息' autosize={{ minRows: 2, maxRows: 6 }} />
 														</div>
 													</div>
 												</div>
@@ -2578,7 +2608,7 @@ class Prescribe extends React.Component {
 													<div className="label-box rex-cf">
 														<span className="label-name rex-fl w154">现病史: </span>
 														<div className="label-forms rex-fl">
-															<Input.TextArea style={{width: 410}} value={state.formQueryDatas.disease_history} onChange={(v)=>this.handleForm('disease_history', v.target.value)} placeholder='请输入患者现病史信息' autoSize={{ minRows: 2, maxRows: 6 }} />
+															<Input.TextArea style={{width: 410}} value={state.formQueryDatas.disease_history} onChange={(v)=>this.handleForm('disease_history', v.target.value)} placeholder='请输入患者现病史信息' autosize={{ minRows: 2, maxRows: 6 }} />
 														</div>
 													</div>
 												</div>
@@ -2587,7 +2617,7 @@ class Prescribe extends React.Component {
 													<div className="label-box rex-cf">
 														<span className="label-name rex-fl w154">既往史: </span>
 														<div className="label-forms rex-fl">
-															<Input.TextArea style={{width: 410}} value={state.formQueryDatas.disease_past} onChange={(v)=>this.handleForm('disease_past', v.target.value)} placeholder='请输入患者既往史信息' autoSize={{ minRows: 2, maxRows: 6 }} />
+															<Input.TextArea style={{width: 410}} value={state.formQueryDatas.disease_past} onChange={(v)=>this.handleForm('disease_past', v.target.value)} placeholder='请输入患者既往史信息' autosize={{ minRows: 2, maxRows: 6 }} />
 														</div>
 													</div>
 												</div>
@@ -2596,7 +2626,7 @@ class Prescribe extends React.Component {
 													<div className="label-box rex-cf">
 														<span className="label-name rex-fl w154">家族史: </span>
 														<div className="label-forms rex-fl">
-															<Input.TextArea style={{width: 410}} value={state.formQueryDatas.disease_family} onChange={(v)=>this.handleForm('disease_family', v.target.value)} placeholder='请输入患者家族史信息' autoSize={{ minRows: 2, maxRows: 6 }} />
+															<Input.TextArea style={{width: 410}} value={state.formQueryDatas.disease_family} onChange={(v)=>this.handleForm('disease_family', v.target.value)} placeholder='请输入患者家族史信息' autosize={{ minRows: 2, maxRows: 6 }} />
 														</div>
 													</div>
 												</div>
@@ -2605,7 +2635,7 @@ class Prescribe extends React.Component {
 													<div className="label-box rex-cf">
 														<span className="label-name rex-fl w154">实验室检查: </span>
 														<div className="label-forms rex-fl">
-															<Input.TextArea style={{width: 410}} value={state.formQueryDatas.inspection_result} onChange={(v)=>this.handleForm('inspection_result', v.target.value)} placeholder='请输入患者实验室检查信息' autoSize={{ minRows: 2, maxRows: 6 }} />
+															<Input.TextArea style={{width: 410}} value={state.formQueryDatas.inspection_result} onChange={(v)=>this.handleForm('inspection_result', v.target.value)} placeholder='请输入患者实验室检查信息' autosize={{ minRows: 2, maxRows: 6 }} />
 														</div>
 													</div>
 												</div>
@@ -2693,7 +2723,7 @@ class Prescribe extends React.Component {
 																	state.treatment_list.map(v=>{
 																		// 拼 音 码 -> GetJP || 拼音全码 -> GetQP || 混 拼 码 -> GetHP
 																		const hunpinCode= v.letters.join(',');
-																		console.log(hunpinCode);
+																		// console.log(hunpinCode);
 																		return(
 																			<Option key={v.id} value={v.id} label={hunpinCode}>{v.name}</Option>
 																		);
@@ -2747,7 +2777,7 @@ class Prescribe extends React.Component {
 													<div className="label-box rex-cf">
 														<span className="label-name rex-fl w154">医嘱: </span>
 														<div className="label-forms rex-fl">
-															<Input.TextArea style={{width: 410}} value={state.formQueryDatas.advise} onChange={(v)=>this.handleForm('advise', v.target.value)} placeholder='请输入患者医嘱信息' autoSize={{ minRows: 2, maxRows: 6 }} />
+															<Input.TextArea style={{width: 410}} value={state.formQueryDatas.advise} onChange={(v)=>this.handleForm('advise', v.target.value)} placeholder='请输入患者医嘱信息' autosize={{ minRows: 2, maxRows: 6 }} />
 														</div>
 													</div>
 												</div>
@@ -2763,7 +2793,7 @@ class Prescribe extends React.Component {
 																<div className="label-box rex-cf">
 																	<span className="label-name rex-fl w154">药后反应: </span>
 																	<div className="label-forms rex-fl">
-																		<Input.TextArea style={{width: 410}} value={state.formQueryDatas.drug_reaction} onChange={(v)=>this.handleForm('drug_reaction', v.target.value)} placeholder='请输入患者药后反应信息' autoSize={{ minRows: 2, maxRows: 6 }} />
+																		<Input.TextArea style={{width: 410}} value={state.formQueryDatas.drug_reaction} onChange={(v)=>this.handleForm('drug_reaction', v.target.value)} placeholder='请输入患者药后反应信息' autosize={{ minRows: 2, maxRows: 6 }} />
 																	</div>
 																</div>
 															</div>
@@ -2777,7 +2807,7 @@ class Prescribe extends React.Component {
 																<div className="label-box rex-cf">
 																	<span className="label-name rex-fl w154">药后反应: </span>
 																	<div className="label-forms rex-fl">
-																		<Input.TextArea style={{width: 410}} value={state.formQueryDatas.drug_reaction} onChange={(v)=>this.handleForm('drug_reaction', v.target.value)} placeholder='请输入患者药后反应信息' autoSize={{ minRows: 2, maxRows: 6 }} />
+																		<Input.TextArea style={{width: 410}} value={state.formQueryDatas.drug_reaction} onChange={(v)=>this.handleForm('drug_reaction', v.target.value)} placeholder='请输入患者药后反应信息' autosize={{ minRows: 2, maxRows: 6 }} />
 																	</div>
 																</div>
 															</div>
@@ -2987,8 +3017,9 @@ class Prescribe extends React.Component {
 														onChange={(date) => {
 															this.setState({
 																cfList_dates_cacheValue: date
+															}, ()=>{
+																this.dataCenter.getcfList(1, this.state.formQueryDatas.disease_record_id);
 															});
-															this.dataCenter.getcfList(1, this.state.formQueryDatas.disease_record_id, date, this.state.cfList_typings_cacheValue.value?this.state.cfList_typings_cacheValue.data:null);
 														}}
 													>
 														{
@@ -3014,8 +3045,10 @@ class Prescribe extends React.Component {
 																	value: typing,
 																	data: bind_data
 																}
+															}, () => {
+																this.dataCenter.getcfList(1, this.state.formQueryDatas.disease_record_id);
 															});
-															this.dataCenter.getcfList(1, this.state.formQueryDatas.disease_record_id, this.state.cfList_dates_cacheValue, bind_data);
+															// this.dataCenter.getcfList(1, this.state.formQueryDatas.disease_record_id, bind_data);
 														}}
 													>
 														{
@@ -3064,7 +3097,8 @@ class Prescribe extends React.Component {
 																				<Input onPressEnter={e=>this.dataCenter.PhysiotherapyRecord(e.target.value, item)} className={item.type === '1'?'':'rex-hide'} placeholder='进行一次理疗,填写操作医师名' style={{width: 220}} />,
 																				<Button type='primary' className={item.status==='20'||item.status===20?'':'rex-hide'} onClick={()=>this.rebackCF(item, _index)}>退款处理</Button>,
 																				<Button type='primary' onClick={()=>this.editCfInfo(item)}>查看/编辑处方</Button>,
-																				<Button type='danger' onClick={()=>this.deleteCF(item, _index)}>删除处方</Button>
+																				<Button type='danger' onClick={()=>this.deleteCF(item, _index)}>删除处方</Button>,
+																				<Button type='primary' className='theme-btn-green' onClick={()=>this.copyCF(item, _index)}>复制处方</Button>
 																			]}
 																		>
 																			<List.Item.Meta
@@ -3085,6 +3119,20 @@ class Prescribe extends React.Component {
 																	);
 																}}
 															/>
+															<Placeholder height={30} />
+															<div>
+																<Pagination
+																	current={state.CF_LIST_PageCurrent}
+																	hideOnSinglePage={true}
+																	pageSize={Prescribe.CF_LIST_PageSize}
+																	total={state.cfList_total_page}
+																	size='small'
+																	onChange={ page => {
+																		// 翻页
+																		this.dataCenter.getcfList(page, this.state.formQueryDatas.disease_record_id);
+																	} }
+																/>
+															</div>
 														</div>:<Empty title='暂无处方记录' src={require('../../../../img/norecord.svg')} />
 												}
 											</div>
@@ -3192,7 +3240,7 @@ class Prescribe extends React.Component {
 																		// 拼 音 码 -> GetJP || 拼音全码 -> GetQP || 混 拼 码 -> GetHP
 																		const hunpinCode= window.Pinyin.GetJP(v.name);
 																		return(
-																			<Option key={v.id} value={v.id} label={hunpinCode}>{v.name}</Option>
+																			<Option key={v.id} value={v.id} label={hunpinCode}>{v.name}({v.unit_name})</Option>
 																		);
 																	})
 																}
@@ -3454,8 +3502,8 @@ class Prescribe extends React.Component {
 																	</div>
 																	<Placeholder height={15} />
 																	<div className='cf-list-unit'>
-																		<span className='names'>处方付数设置:</span>
-																		<InputNumber style={{width: 160}} value={state.cf_nums} onChange={e=>this.setState({cf_nums: e})} placeholder='输入处方付数' maxLength={4} max={100} min={1} precision={0} />
+																		<span className='names'>处方数量设置:</span>
+																		<InputNumber style={{width: 160}} value={state.cf_nums} onChange={e=>this.setState({cf_nums: e})} placeholder='输入处方数量' maxLength={4} max={100} min={1} precision={0} />
 																	</div>
 																	{
 																		state.drugData2_id !== undefined && state.drugData2_id !== null?
@@ -3526,7 +3574,7 @@ class Prescribe extends React.Component {
 																<React.Fragment>
 																	<div className='cf-list-unit'>
 																		<span className='names'>自购处方清单内容:</span>
-																		<Input.TextArea style={{width: 320}} value={state.zigouTEXT} onChange={e=>this.setState({zigouTEXT: e.target.value})} placeholder='输入自购处方清单内容，如: 阿莫西林(3盒)，奥美拉唑(2盒)，莫沙必利(1盒)' autoSize={{ minRows: 3, maxRows: 6 }} />
+																		<Input.TextArea style={{width: 320}} value={state.zigouTEXT} onChange={e=>this.setState({zigouTEXT: e.target.value})} placeholder='输入自购处方清单内容，如: 阿莫西林(3盒)，奥美拉唑(2盒)，莫沙必利(1盒)' autosize={{ minRows: 3, maxRows: 6 }} />
 																	</div>
 																	<Placeholder height={15} />
 																	<div className='cf-list-unit'>
@@ -3573,7 +3621,7 @@ class Prescribe extends React.Component {
 																					// 拼 音 码 -> GetJP || 拼音全码 -> GetQP || 混 拼 码 -> GetHP
 																					const hunpinCode= v.letters.join(',');
 																					return(
-																						<Option key={v.id} value={v.id} label={hunpinCode}>{v.name}{`(${v.price}元)`}</Option>
+																						<Option key={v.id} value={v.id} label={hunpinCode}>{v.name}({v.price}元/{v.unit_name})</Option>
 																					);
 																				})
 																			}
@@ -3581,7 +3629,7 @@ class Prescribe extends React.Component {
 																	</div>
 																	<Placeholder height={15} />
 																	<div className='cf-list-unit'>
-																		<span className='names'>外用药个数:</span>
+																		<span className='names'>外用药的个数:</span>
 																		<Input style={{width: 320}} value={state.waiyongNums} onChange={e=>this.setState({waiyongNums: e.target.value})} placeholder='输入外用药个数(阿拉伯数字), 英文逗号分开, 如: 1, 2, 3' />
 																	</div>
 																	<Placeholder height={15} />
@@ -3670,7 +3718,7 @@ class Prescribe extends React.Component {
 																					// 拼 音 码 -> GetJP || 拼音全码 -> GetQP || 混 拼 码 -> GetHP
 																					const hunpinCode= v.letters.join(',');
 																					return(
-																						<Option key={v.id} value={v.id} label={hunpinCode}>{v.name}</Option>
+																						<Option key={v.id} value={v.id} label={hunpinCode}>{v.name}({v.unit_name})</Option>
 																					);
 																				})
 																			}
@@ -3678,8 +3726,9 @@ class Prescribe extends React.Component {
 																	</div>
 																	<Placeholder height={15} />
 																	<div className='cf-list-unit'>
-																		<span className='names'>处方付数设置:</span>
-																		<InputNumber style={{width: 220}} value={state.cf_nums} onChange={e=>this.setState({cf_nums: e})} placeholder='输入处方付数' maxLength={4} max={100} min={1} precision={0} />
+																		<span className='names'>外用药的个数:</span>
+																		{/*输入处方付数*/}
+																		<InputNumber style={{width: 220}} value={state.cf_nums} onChange={e=>this.setState({cf_nums: e})} placeholder='输入外用藥個數' maxLength={4} max={100} min={1} precision={0} />
 																	</div>
 																	<Placeholder height={15} />
 																	<div className='cf-list-unit'>
@@ -3787,7 +3836,7 @@ class Prescribe extends React.Component {
 																		<div className="label-box rex-cf">
 																			<span className="label-name rex-fl w154">患者主诉: </span>
 																			<div className="label-forms rex-fl">
-																				<Input.TextArea style={{width: 410}} value={state.formQueryDatas.patient_desc} onChange={(v)=>this.handleForm('patient_desc', v.target.value)} placeholder='请输入患者主诉信息' autoSize={{ minRows: 2, maxRows: 6 }} />
+																				<Input.TextArea style={{width: 410}} value={state.formQueryDatas.patient_desc} onChange={(v)=>this.handleForm('patient_desc', v.target.value)} placeholder='请输入患者主诉信息' autosize={{ minRows: 2, maxRows: 6 }} />
 																			</div>
 																		</div>
 																	</div>
@@ -3796,7 +3845,7 @@ class Prescribe extends React.Component {
 																		<div className="label-box rex-cf">
 																			<span className="label-name rex-fl w154">现病史: </span>
 																			<div className="label-forms rex-fl">
-																				<Input.TextArea style={{width: 410}} value={state.formQueryDatas.disease_history} onChange={(v)=>this.handleForm('disease_history', v.target.value)} placeholder='请输入患者现病史信息' autoSize={{ minRows: 2, maxRows: 6 }} />
+																				<Input.TextArea style={{width: 410}} value={state.formQueryDatas.disease_history} onChange={(v)=>this.handleForm('disease_history', v.target.value)} placeholder='请输入患者现病史信息' autosize={{ minRows: 2, maxRows: 6 }} />
 																			</div>
 																		</div>
 																	</div>
@@ -3805,7 +3854,7 @@ class Prescribe extends React.Component {
 																		<div className="label-box rex-cf">
 																			<span className="label-name rex-fl w154">既往史: </span>
 																			<div className="label-forms rex-fl">
-																				<Input.TextArea style={{width: 410}} value={state.formQueryDatas.disease_past} onChange={(v)=>this.handleForm('disease_past', v.target.value)} placeholder='请输入患者既往史信息' autoSize={{ minRows: 2, maxRows: 6 }} />
+																				<Input.TextArea style={{width: 410}} value={state.formQueryDatas.disease_past} onChange={(v)=>this.handleForm('disease_past', v.target.value)} placeholder='请输入患者既往史信息' autosize={{ minRows: 2, maxRows: 6 }} />
 																			</div>
 																		</div>
 																	</div>
@@ -3814,7 +3863,7 @@ class Prescribe extends React.Component {
 																		<div className="label-box rex-cf">
 																			<span className="label-name rex-fl w154">家族史: </span>
 																			<div className="label-forms rex-fl">
-																				<Input.TextArea style={{width: 410}} value={state.formQueryDatas.disease_family} onChange={(v)=>this.handleForm('disease_family', v.target.value)} placeholder='请输入患者家族史信息' autoSize={{ minRows: 2, maxRows: 6 }} />
+																				<Input.TextArea style={{width: 410}} value={state.formQueryDatas.disease_family} onChange={(v)=>this.handleForm('disease_family', v.target.value)} placeholder='请输入患者家族史信息' autosize={{ minRows: 2, maxRows: 6 }} />
 																			</div>
 																		</div>
 																	</div>
@@ -3823,7 +3872,7 @@ class Prescribe extends React.Component {
 																		<div className="label-box rex-cf">
 																			<span className="label-name rex-fl w154">实验室检查: </span>
 																			<div className="label-forms rex-fl">
-																				<Input.TextArea style={{width: 410}} value={state.formQueryDatas.inspection_result} onChange={(v)=>this.handleForm('inspection_result', v.target.value)} placeholder='请输入患者实验室检查信息' autoSize={{ minRows: 2, maxRows: 6 }} />
+																				<Input.TextArea style={{width: 410}} value={state.formQueryDatas.inspection_result} onChange={(v)=>this.handleForm('inspection_result', v.target.value)} placeholder='请输入患者实验室检查信息' autosize={{ minRows: 2, maxRows: 6 }} />
 																			</div>
 																		</div>
 																	</div>
@@ -3940,7 +3989,7 @@ class Prescribe extends React.Component {
 																		<div className="label-box rex-cf">
 																			<span className="label-name rex-fl w154">医嘱: </span>
 																			<div className="label-forms rex-fl">
-																				<Input.TextArea style={{width: 410}} value={state.formQueryDatas.advise} onChange={(v)=>this.handleForm('advise', v.target.value)} placeholder='请输入患者医嘱信息' autoSize={{ minRows: 2, maxRows: 6 }} />
+																				<Input.TextArea style={{width: 410}} value={state.formQueryDatas.advise} onChange={(v)=>this.handleForm('advise', v.target.value)} placeholder='请输入患者医嘱信息' autosize={{ minRows: 2, maxRows: 6 }} />
 																			</div>
 																		</div>
 																	</div>
@@ -3956,7 +4005,7 @@ class Prescribe extends React.Component {
 																					<div className="label-box rex-cf">
 																						<span className="label-name rex-fl w154">药后反应: </span>
 																						<div className="label-forms rex-fl">
-																							<Input.TextArea style={{width: 410}} value={state.formQueryDatas.drug_reaction} onChange={(v)=>this.handleForm('drug_reaction', v.target.value)} placeholder='请输入患者药后反应信息' autoSize={{ minRows: 2, maxRows: 6 }} />
+																							<Input.TextArea style={{width: 410}} value={state.formQueryDatas.drug_reaction} onChange={(v)=>this.handleForm('drug_reaction', v.target.value)} placeholder='请输入患者药后反应信息' autosize={{ minRows: 2, maxRows: 6 }} />
 																						</div>
 																					</div>
 																				</div>
@@ -3970,7 +4019,7 @@ class Prescribe extends React.Component {
 																					<div className="label-box rex-cf">
 																						<span className="label-name rex-fl w154">药后反应: </span>
 																						<div className="label-forms rex-fl">
-																							<Input.TextArea style={{width: 410}} value={state.formQueryDatas.drug_reaction} onChange={(v)=>this.handleForm('drug_reaction', v.target.value)} placeholder='请输入患者药后反应信息' autoSize={{ minRows: 2, maxRows: 6 }} />
+																							<Input.TextArea style={{width: 410}} value={state.formQueryDatas.drug_reaction} onChange={(v)=>this.handleForm('drug_reaction', v.target.value)} placeholder='请输入患者药后反应信息' autosize={{ minRows: 2, maxRows: 6 }} />
 																						</div>
 																					</div>
 																				</div>
@@ -4240,7 +4289,7 @@ class Prescribe extends React.Component {
 																		<div className="label-box rex-cf">
 																			<span className="label-name rex-fl w154">患者主诉: </span>
 																			<div className="label-forms rex-fl">
-																				<Input.TextArea style={{width: 410}} value={state.formQueryDatas.patient_desc} onChange={(v)=>this.handleForm('patient_desc', v.target.value)} placeholder='请输入患者主诉信息' autoSize={{ minRows: 2, maxRows: 6 }} />
+																				<Input.TextArea style={{width: 410}} value={state.formQueryDatas.patient_desc} onChange={(v)=>this.handleForm('patient_desc', v.target.value)} placeholder='请输入患者主诉信息' autosize={{ minRows: 2, maxRows: 6 }} />
 																			</div>
 																		</div>
 																	</div>
@@ -4249,7 +4298,7 @@ class Prescribe extends React.Component {
 																		<div className="label-box rex-cf">
 																			<span className="label-name rex-fl w154">现病史: </span>
 																			<div className="label-forms rex-fl">
-																				<Input.TextArea style={{width: 410}} value={state.formQueryDatas.disease_history} onChange={(v)=>this.handleForm('disease_history', v.target.value)} placeholder='请输入患者现病史信息' autoSize={{ minRows: 2, maxRows: 6 }} />
+																				<Input.TextArea style={{width: 410}} value={state.formQueryDatas.disease_history} onChange={(v)=>this.handleForm('disease_history', v.target.value)} placeholder='请输入患者现病史信息' autosize={{ minRows: 2, maxRows: 6 }} />
 																			</div>
 																		</div>
 																	</div>
@@ -4258,7 +4307,7 @@ class Prescribe extends React.Component {
 																		<div className="label-box rex-cf">
 																			<span className="label-name rex-fl w154">既往史: </span>
 																			<div className="label-forms rex-fl">
-																				<Input.TextArea style={{width: 410}} value={state.formQueryDatas.disease_past} onChange={(v)=>this.handleForm('disease_past', v.target.value)} placeholder='请输入患者既往史信息' autoSize={{ minRows: 2, maxRows: 6 }} />
+																				<Input.TextArea style={{width: 410}} value={state.formQueryDatas.disease_past} onChange={(v)=>this.handleForm('disease_past', v.target.value)} placeholder='请输入患者既往史信息' autosize={{ minRows: 2, maxRows: 6 }} />
 																			</div>
 																		</div>
 																	</div>
@@ -4267,7 +4316,7 @@ class Prescribe extends React.Component {
 																		<div className="label-box rex-cf">
 																			<span className="label-name rex-fl w154">家族史: </span>
 																			<div className="label-forms rex-fl">
-																				<Input.TextArea style={{width: 410}} value={state.formQueryDatas.disease_family} onChange={(v)=>this.handleForm('disease_family', v.target.value)} placeholder='请输入患者家族史信息' autoSize={{ minRows: 2, maxRows: 6 }} />
+																				<Input.TextArea style={{width: 410}} value={state.formQueryDatas.disease_family} onChange={(v)=>this.handleForm('disease_family', v.target.value)} placeholder='请输入患者家族史信息' autosize={{ minRows: 2, maxRows: 6 }} />
 																			</div>
 																		</div>
 																	</div>
@@ -4276,7 +4325,7 @@ class Prescribe extends React.Component {
 																		<div className="label-box rex-cf">
 																			<span className="label-name rex-fl w154">实验室检查: </span>
 																			<div className="label-forms rex-fl">
-																				<Input.TextArea style={{width: 410}} value={state.formQueryDatas.inspection_result} onChange={(v)=>this.handleForm('inspection_result', v.target.value)} placeholder='请输入患者实验室检查信息' autoSize={{ minRows: 2, maxRows: 6 }} />
+																				<Input.TextArea style={{width: 410}} value={state.formQueryDatas.inspection_result} onChange={(v)=>this.handleForm('inspection_result', v.target.value)} placeholder='请输入患者实验室检查信息' autosize={{ minRows: 2, maxRows: 6 }} />
 																			</div>
 																		</div>
 																	</div>
@@ -4393,7 +4442,7 @@ class Prescribe extends React.Component {
 																		<div className="label-box rex-cf">
 																			<span className="label-name rex-fl w154">医嘱: </span>
 																			<div className="label-forms rex-fl">
-																				<Input.TextArea style={{width: 410}} value={state.formQueryDatas.advise} onChange={(v)=>this.handleForm('advise', v.target.value)} placeholder='请输入患者医嘱信息' autoSize={{ minRows: 2, maxRows: 6 }} />
+																				<Input.TextArea style={{width: 410}} value={state.formQueryDatas.advise} onChange={(v)=>this.handleForm('advise', v.target.value)} placeholder='请输入患者医嘱信息' autosize={{ minRows: 2, maxRows: 6 }} />
 																			</div>
 																		</div>
 																	</div>
@@ -4409,7 +4458,7 @@ class Prescribe extends React.Component {
 																					<div className="label-box rex-cf">
 																						<span className="label-name rex-fl w154">药后反应: </span>
 																						<div className="label-forms rex-fl">
-																							<Input.TextArea style={{width: 410}} value={state.formQueryDatas.drug_reaction} onChange={(v)=>this.handleForm('drug_reaction', v.target.value)} placeholder='请输入患者药后反应信息' autoSize={{ minRows: 2, maxRows: 6 }} />
+																							<Input.TextArea style={{width: 410}} value={state.formQueryDatas.drug_reaction} onChange={(v)=>this.handleForm('drug_reaction', v.target.value)} placeholder='请输入患者药后反应信息' autosize={{ minRows: 2, maxRows: 6 }} />
 																						</div>
 																					</div>
 																				</div>
@@ -4423,7 +4472,7 @@ class Prescribe extends React.Component {
 																					<div className="label-box rex-cf">
 																						<span className="label-name rex-fl w154">药后反应: </span>
 																						<div className="label-forms rex-fl">
-																							<Input.TextArea style={{width: 410}} value={state.formQueryDatas.drug_reaction} onChange={(v)=>this.handleForm('drug_reaction', v.target.value)} placeholder='请输入患者药后反应信息' autoSize={{ minRows: 2, maxRows: 6 }} />
+																							<Input.TextArea style={{width: 410}} value={state.formQueryDatas.drug_reaction} onChange={(v)=>this.handleForm('drug_reaction', v.target.value)} placeholder='请输入患者药后反应信息' autosize={{ minRows: 2, maxRows: 6 }} />
 																						</div>
 																					</div>
 																				</div>
