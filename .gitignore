@@ -12,7 +12,11 @@
 
 # app build
 /xiyongApplication-win32-x64
+/xiyongApplication-win32-x64-online
+/xiyongApplication-win32-x64-local
 /xiyongApplication-darwin-x64
+/xiyongApplication-darwin-x64-online
+/xiyongApplication-darwin-x64-local
 
 # ide config
 /.idea
