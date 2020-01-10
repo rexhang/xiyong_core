@@ -35,7 +35,8 @@ function createWindow () {
 		// Open the DevTools.
 		mainWindow.webContents.openDevTools();
 	} else{
-		mainWindow.loadURL('https://www.xiyongzy.com/core/#/admin/core/prescribe');
+		// mainWindow.loadURL('https://www.xiyongzy.com/core/#/admin/core/prescribe');
+		mainWindow.loadURL('http://127.0.0.1/core');
 		// mainWindow.loadFile('./build/index.html');
 	}
 

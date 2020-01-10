@@ -91,8 +91,8 @@
     "build": "node scripts/build.js",
     "test": "node scripts/test.js",
     "electron-start": "electron .",
-    "pack": "electron-packager . xiyongApplication --win --out . --arch=x64 --app-version=0.0.1 --overwrite --electron-version=6.0.9 --icon=./public/favicon.ico --ignore=\"(src|.idea|.git|.eslint*|yarn-error.log|yarn.lock|docs|.gitignore|LICENSE|README.md|webpack.config*|node_modules)\"",
-    "packformacos": "electron-packager . xiyongApplication --platform=darwin --out . --arch=x64 --app-version=0.0.1 -overwrite --electron-version=6.0.9 --icon=app.icns --asar --ignore=\"(src|.idea|.git|.eslint*|yarn-error.log|yarn.lock|docs|.gitignore|LICENSE|README.md|webpack.config*|node_modules)\"",
+    "pack": "electron-packager . xiyongApplication --win --out . --arch=x64 --app-version=0.0.1 --overwrite --electron-version=6.0.9 --icon=./public/favicon.ico --ignore=\"(src|.idea|.git|.eslint*|yarn-error.log|yarn.lock|docs|.gitignore|LICENSE|README.md|webpack.config*|node_modules|xiyongApplication-darwin-x64|xiyongApplication-darwin-x64-online|xiyongApplication-darwin-x64-local|xiyongApplication-win32-x64|xiyongApplication-win32-x64-online|xiyongApplication-win32-x64-local)\"",
+    "packformacos": "electron-packager . xiyongApplication --platform=darwin --out . --arch=x64 --app-version=0.0.2 --overwrite --electron-version=6.0.9 --icon=app.icns --asar --ignore=\"(src|.idea|.git|.eslint*|yarn-error.log|yarn.lock|docs|.gitignore|LICENSE|README.md|webpack.config*|node_modules|xiyongApplication-darwin-x64|xiyongApplication-darwin-x64-online|xiyongApplication-darwin-x64-local|xiyongApplication-win32-x64|xiyongApplication-win32-x64-online|xiyongApplication-win32-x64-local)\"",
     "asar": "asar pack ./app app.asar"
   },
   "eslintConfig": {},
