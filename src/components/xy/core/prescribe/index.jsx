@@ -2320,7 +2320,7 @@ class Prescribe extends React.Component {
 			message.warn('请输入用户名');
 			return false;
 		}
-		if (!mobile || mobile.length!==11){
+		if (mobile.toString().length !== 11){
 			message.warn('请输入正确的手机号');
 			return false;
 		}
