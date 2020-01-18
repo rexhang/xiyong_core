@@ -281,6 +281,16 @@ class Prescribe extends React.Component {
 		waiyong2List: [],
 		CF_LIST_PageCurrent: 1,
 		cfList_total_page: 0,
+		createUserForm: {
+			name: '',
+			mobile: '',
+			sex: 1,
+			visible: false
+		},
+		feature: '',
+		u_name: '',
+		u_mobile: '',
+		u_id: ''
 	};
 
 	searchbox = null;
@@ -515,6 +525,10 @@ class Prescribe extends React.Component {
 			}).then(res=>{
 				if (res.data.code === 200) {
 					this.setState({
+						feature: res.data.data.userinfo.feature,
+						u_name: res.data.data.userinfo.username,
+						u_mobile: res.data.data.userinfo.mobile,
+						u_id: res.data.data.userinfo.id,
 						blList: res.data.data.medicalRecordList.list,
 						blList_current_page: res.data.data.medicalRecordList.page.pn,
 						blList_total_page: res.data.data.medicalRecordList.page.tc
@@ -1462,19 +1476,25 @@ class Prescribe extends React.Component {
 	};
 
 	copyCF = (item, _index) => {
-		// console.log(item);
-	    // 复制处方
-		if (!item.id) {
-			return false;
+	    // 拷贝此处方
+		let id = null;
+		if (item === 'copy'){
+			id = this.cfEditId;
+		} else {
+			if (!item.id) {
+				message.error('复制出错请返回重试~');
+				return false;
+			}
+			id = item.id;
 		}
 		confirm({
 			title: '提示',
-			content: `确定复制此条处方(取货码为${item.code})吗？`,
+			content: `确定复制此条处方吗？`,
 			okText: '确认',
 			cancelText: '取消',
 			onOk: () => {
 				$http.post(API.prescriptionCopy, {
-					id: item.id
+					id
 				}).then(res=>{
 					if (res.data.code === 200) {
 						message.success('复制成功');
@@ -2275,6 +2295,68 @@ class Prescribe extends React.Component {
 	    console.log('test');
 	};
 
+	createUserHandler = (name, val) => {
+	    this.setState({
+		    createUserForm: {
+		        ...this.state.createUserForm,
+			    [name]: val
+		    }
+	    });
+	};
+	createUserHandler_clear = () => {
+		this.setState({
+			createUserForm: {
+				name: '',
+				mobile: '',
+				sex: 1,
+				visible: false
+			}
+		});
+	};
+
+	createUserHandleFunc = () => {
+		const {name, mobile, sex} = this.state.createUserForm;
+		if (!name){
+			message.warn('请输入用户名');
+			return false;
+		}
+		if (!mobile || mobile.length!==11){
+			message.warn('请输入正确的手机号');
+			return false;
+		}
+		// 创建用户
+		$http.post(API.addPatient, {
+			username: name,
+			mobile,
+			sex
+		}).then(res=>{
+			if (res.data.code === 200){
+				message.success('添加成功');
+				this.createUserHandler_clear();
+			}
+		});
+	};
+
+	saveFeature = () => {
+	    // 保存featrue
+		const {u_name, u_mobile, u_id, feature} = this.state;
+		if(!u_name || !u_mobile || !u_id){
+			message.error('信息获取错误，请重试');
+			return false;
+		}
+		$http.post(API.addPatient, {
+			username: u_name,
+			mobile: u_mobile,
+			feature,
+			id: u_id
+		}).then(res=>{
+			if (res.data.code === 200){
+				message.success('备注保存成功');
+				// 无需重新获取feather
+			}
+		});
+	};
+
 	render() {
 		const state = this.state;
 
@@ -2395,6 +2477,10 @@ class Prescribe extends React.Component {
 		return (
 			<div className="Prescribe" id='Prescribe'>
 				<h2 className='title'>门诊就诊系统</h2>
+				<center><Button type='link' onClick={()=>{
+					this.createUserHandler('visible', true);
+				}}>添加患者</Button></center>
+				<br/>
 				<div className="content">
 					<div className="filter-box">
 						<Input.Search
@@ -2427,6 +2513,16 @@ class Prescribe extends React.Component {
 													viewUserAvatar_url: avatar_pic
 												});
 											}} style={{border: '1px solid #ddd8d8', borderRadius: '4px', width: 'min-content', height: 120, padding: '4px', cursor: `url(${require('./assets/pointer_mouse.cur')}), pointer`}}><img src={avatar_pic} height={'100%'} alt=""/></div></Descriptions.Item>
+											<Descriptions.Item label="特征备注信息">
+												<Input.TextArea placeholder='请输入特征备注信息' value={state.feature} autosize={{ minRows: 6, maxRows: 6 }} style={{width: 300,marginRight: 5}}
+													onChange={v=>{
+														this.setState({
+															feature: v.target.value
+														});
+													}}
+												/>
+												<Button onClick={()=>this.saveFeature()}>保存备注</Button>
+											</Descriptions.Item>
 										</Descriptions>
 									</div>
 									<Placeholder height={25} />
@@ -2555,6 +2651,16 @@ class Prescribe extends React.Component {
 											viewUserAvatar_url: avatar_pic
 										});
 									}} style={{border: '1px solid #ddd8d8', borderRadius: '4px', width: 'min-content', height: 120, padding: '4px', cursor: `url(${require('./assets/pointer_mouse.cur')}), pointer`}}><img src={avatar_pic} height={'100%'} alt=""/></div></Descriptions.Item>
+									<Descriptions.Item label="特征备注信息">
+										<Input.TextArea placeholder='请输入特征备注信息' value={state.feature} autosize={{ minRows: 6, maxRows: 6 }} style={{width: 300,marginRight: 5}}
+										                onChange={v=>{
+											                this.setState({
+												                feature: v.target.value
+											                });
+										                }}
+										/>
+										<Button onClick={()=>this.saveFeature()}>保存备注</Button>
+									</Descriptions.Item>
 								</Descriptions>
 							</div>
 						</div>
@@ -3096,12 +3202,11 @@ class Prescribe extends React.Component {
 																	return (
 																		<List.Item
 																			actions={[
-																				<Input onPressEnter={e=>console.log(e.target.value)} placeholder='处方标记信息处' style={{width: 220}} />,
 																				<Input onPressEnter={e=>this.dataCenter.PhysiotherapyRecord(e.target.value, item)} className={item.type === '1'?'':'rex-hide'} placeholder='进行一次理疗,填写操作医师名' style={{width: 220}} />,
 																				<Button type='primary' className={item.status==='20'||item.status===20?'':'rex-hide'} onClick={()=>this.rebackCF(item, _index)}>退款处理</Button>,
 																				<Button type='primary' onClick={()=>this.editCfInfo(item)}>查看/编辑处方</Button>,
 																				<Button type='danger' onClick={()=>this.deleteCF(item, _index)}>删除处方</Button>,
-																				<Button type='primary' className='theme-btn-green' onClick={()=>this.copyCF(item, _index)}>复制处方</Button>
+																				<Button type='primary' className='theme-btn-green' onClick={()=>this.copyCF(item, _index)}>拷贝此处方</Button>
 																			]}
 																		>
 																			<List.Item.Meta
@@ -3172,6 +3277,16 @@ class Prescribe extends React.Component {
 													viewUserAvatar_url: avatar_pic
 												});
 											}} style={{border: '1px solid #ddd8d8', borderRadius: '4px', width: 'min-content', height: 120, padding: '4px', cursor: `url(${require('./assets/pointer_mouse.cur')}), pointer`}}><img src={avatar_pic} height={'100%'} alt=""/></div></Descriptions.Item>
+											<Descriptions.Item label="特征备注信息">
+												<Input.TextArea placeholder='请输入特征备注信息' value={state.feature} autosize={{ minRows: 6, maxRows: 6 }} style={{width: 300,marginRight: 5}}
+												                onChange={v=>{
+													                this.setState({
+														                feature: v.target.value
+													                });
+												                }}
+												/>
+												<Button onClick={()=>this.saveFeature()}>保存备注</Button>
+											</Descriptions.Item>
 										</Descriptions>
 									</div>
 								</div>
@@ -3796,7 +3911,13 @@ class Prescribe extends React.Component {
 																</React.Fragment>:null
 														}
 														<Placeholder height={15} />
-														<Button icon='save' disabled={state.status === '20' || state.status === 20 || state.status === '30' || state.status === 30} onClick={()=>this.saveCfContent()}>{state.status === '20' || state.status === 20?'已支付':state.status === '30' || state.status === 30?'已退款':'保存/修改'}</Button>
+														<div className='rex-cf'>
+															<Button className='rex-fl' icon='save' disabled={state.status === '20' || state.status === 20 || state.status === '30' || state.status === 30} onClick={()=>this.saveCfContent()}>{state.status === '20' || state.status === 20?'已支付':state.status === '30' || state.status === 30?'已退款':'保存/修改'}</Button>
+															{
+																this.cfEditId?
+																	<div className='rex-fl'><Placeholder width={15} /><Button onClick={()=>this.copyCF('copy')} icon='copy'>拷贝此处方</Button></div>:null
+															}
+														</div>
 													</div>
 													<div className="rex-fl" style={{marginLeft: 44}}>
 														{
@@ -4249,7 +4370,13 @@ class Prescribe extends React.Component {
 															<InputNumber className='rex-fl' style={{width: 160, marginLeft: 12}} value={state.ll_unit_price * 1 * (state.ll_count * 1) * ((100-state.coupon_data_id2*1)/100)+'元'} readOnly />
 														</div>
 														<Placeholder height={15} />
-														<Button icon='save' disabled={state.status === '20' || state.status === 20 || state.status === '30' || state.status === 30} onClick={()=>this.saveLL()}>{state.status === '20' || state.status === 20?'已支付':state.status === '30' || state.status === 30?'已退款':'保存/修改'}</Button>
+														<div>
+															<Button className='rex-fl' icon='save' disabled={state.status === '20' || state.status === 20 || state.status === '30' || state.status === 30} onClick={()=>this.saveLL()}>{state.status === '20' || state.status === 20?'已支付':state.status === '30' || state.status === 30?'已退款':'保存/修改'}</Button>
+															{
+																this.cfEditId?
+																	<div className='rex-fl'><Placeholder width={15} /><Button icon='copy' onClick={()=>this.copyCF('copy')}>拷贝此处方</Button></div>:null
+															}
+														</div>
 													</div>
 													<div className="rex-fl" style={{marginLeft: 44}}>
 														{
@@ -4633,6 +4760,44 @@ class Prescribe extends React.Component {
 				>
 					<div className='video-preview' style={{width: '100%'}}>
 						<video id='preview-video' style={{width: '100%'}} controls loop src={state.videoPreviewUrl} />
+					</div>
+				</Modal>
+
+				<Modal
+					title={'添加患者'}
+					visible={this.state.createUserForm.visible}
+					width={400}
+					okText={'确定'}
+					cancelText={'取消'}
+					onOk={()=>{
+						this.createUserHandleFunc();
+					}}
+					onCancel={()=>{
+						this.createUserHandler_clear();
+					}}
+				>
+					<div>
+						<div className='rex-form-ctrl rex-cf'>
+							<span className='name'>请输入姓名:</span>
+							<Input className='inputs' value={this.state.createUserForm.name} onChange={(v)=>this.createUserHandler('name', v.target.value)} placeholder='请输入姓名' maxLength={16} />
+						</div>
+						<div className='rex-form-ctrl rex-cf'>
+							<span className='name'>请输入手机号:</span>
+							<InputNumber className='inputs' value={this.state.createUserForm.mobile} onChange={(v)=>this.createUserHandler('mobile', v)} placeholder='请输入手机号' maxLength={11} />
+						</div>
+						<div className='rex-form-ctrl rex-cf'>
+							<span className='name'>请选择性别:</span>
+							<Radio.Group
+								className='inputs'
+								value={this.state.createUserForm.sex}
+								onChange={(v)=>{
+									this.createUserHandler('sex', v.target.value);
+								}}
+							>
+								<Radio value={1}>男</Radio>
+								<Radio value={2}>女</Radio>
+							</Radio.Group>
+						</div>
 					</div>
 				</Modal>
 
