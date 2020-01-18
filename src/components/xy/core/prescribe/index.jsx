@@ -1,3 +1,6 @@
+/**
+ * 正式版
+ */
 import React from 'react';
 
 import rdom from 'react-dom';
