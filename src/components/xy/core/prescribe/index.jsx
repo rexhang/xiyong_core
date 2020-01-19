@@ -285,6 +285,7 @@ class Prescribe extends React.Component {
 			name: '',
 			mobile: '',
 			sex: 1,
+			id_num: '',
 			visible: false
 		},
 		feature: '',
@@ -2309,13 +2310,14 @@ class Prescribe extends React.Component {
 				name: '',
 				mobile: '',
 				sex: 1,
+				id_num: '',
 				visible: false
 			}
 		});
 	};
 
 	createUserHandleFunc = () => {
-		const {name, mobile, sex} = this.state.createUserForm;
+		const {name, mobile, id_num, sex} = this.state.createUserForm;
 		if (!name){
 			message.warn('请输入用户名');
 			return false;
@@ -2324,10 +2326,15 @@ class Prescribe extends React.Component {
 			message.warn('请输入正确的手机号');
 			return false;
 		}
+		if (id_num.replace(/\s+/g,"").length !== 18){
+			message.warn('请输入正确的身份证号');
+			return false;
+		}
 		// 创建用户
 		$http.post(API.addPatient, {
 			username: name,
 			mobile,
+			id_num,
 			sex
 		}).then(res=>{
 			if (res.data.code === 200){
@@ -4784,6 +4791,10 @@ class Prescribe extends React.Component {
 						<div className='rex-form-ctrl rex-cf'>
 							<span className='name'>请输入手机号:</span>
 							<InputNumber className='inputs' value={this.state.createUserForm.mobile} onChange={(v)=>this.createUserHandler('mobile', v)} placeholder='请输入手机号' maxLength={11} />
+						</div>
+						<div className='rex-form-ctrl rex-cf'>
+							<span className='name'>请输入身份证号:</span>
+							<Input className='inputs' value={this.state.createUserForm.id_num} onChange={(v)=>this.createUserHandler('id_num', v.target.value)} placeholder='请输入身份证号' maxLength={18} />
 						</div>
 						<div className='rex-form-ctrl rex-cf'>
 							<span className='name'>请选择性别:</span>
