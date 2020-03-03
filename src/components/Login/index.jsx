@@ -8,6 +8,10 @@ import Modal from '@src/containers/modal/modal';
 
 import {LocalStorage, transformRequest, getWindowSize} from '../../util';
 
+import TestComponents from "../../containers/TestComponents";
+
+import GlobalContext from "../../containers/Context/Context";
+
 import './index.scss';
 
 // import DrawBackground from './canvas';
@@ -16,8 +20,18 @@ import API, {$http} from '@api';
 
 import {asyncStateHoc} from '@src/advanced';
 
+import createGraphFromNodeEdge from "echarts/src/chart/helper/createGraphFromNodeEdge";
+
+import {connect} from "react-redux";
+
+import {changeTest} from "../../redux/main.redux";
+
 const FormItem = Form.Item;
 
+@connect(
+	state=>state,
+	{changeTest}
+)
 @asyncStateHoc
 class Login extends React.Component {
 
@@ -39,6 +53,12 @@ class Login extends React.Component {
 			mrTop
 		});
 		window.onresize = this.resized;
+
+		// console.log(this.self);
+		
+		console.log(this.props);
+		
+		this.props.changeTest('guhang');
 	}
 
 	componentWillMount(){
@@ -120,6 +140,10 @@ class Login extends React.Component {
 		});
 	};
 
+	say = () => {
+	   console.log('i am parent methods');
+	};
+
 	render() {
 		const {getFieldDecorator} = this.props.form;
 		return (
@@ -188,6 +212,19 @@ class Login extends React.Component {
 						Copyright© 2019-2020 rexhang出品
 					</div>
 				</div>
+
+				<GlobalContext.Provider
+					value = {{
+						name: 'Login',
+						target: this
+					}}>
+					<TestComponents width={'1100'} height={'150'} parent={() => this} child={child=>this.child=child}></TestComponents>
+				</GlobalContext.Provider>
+
+				{/*<div ref={self => this.self = self} onClick={()=>{*/}
+				{/*	console.log(this.child);*/}
+				{/*	this.child.say();*/}
+				{/*}}>调用子组件方法</div>*/}
 
 				<Modal>
 					<canvas id='stage'></canvas>

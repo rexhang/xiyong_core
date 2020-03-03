@@ -12,9 +12,10 @@ import './loading-animation.scss';
 
 class LoadingAnimation extends React.PureComponent {
 
-    static proptypes = {
-    	width: PropTypes.string,
-    	hide: PropTypes.boolean
+    static propTypes = {
+    	width: PropTypes.string.isRequired,
+	    height: PropTypes.string,
+    	hide: PropTypes.bool.isRequired
     };
 
     static defaultProps = {

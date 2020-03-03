@@ -18,6 +18,8 @@ const admin_version = '1.0.0';
 
 const UNREAD_MESSAGE = 'UNREAD_MESSAGE';
 
+const TEST_CHANGE = 'TEST_CHANGE';
+
 const initState = {
 	datas: {},
 	errormsg: '',
@@ -25,7 +27,8 @@ const initState = {
 	memuConfig: {type: 'small', status: 'small'},
 	link: '',
 	version: LocalStorage.get('admin_version') ? LocalStorage.get('admin_version') : admin_version, /*手动写入版本号和线上进行匹配*/
-	unread_message: 0
+	unread_message: 0,
+	info: 'none'
 };
 
 export function main(state=initState, action) {
@@ -42,6 +45,8 @@ export function main(state=initState, action) {
 		return {...state, version: action.version};
 	case UNREAD_MESSAGE:
 		return {...state, unread_message: action.message_count};
+	case TEST_CHANGE:
+		return {...state, info: action.info};
 	default:
 		return state;
 	}
@@ -87,11 +92,23 @@ function versionChange(version) {
 	};
 }
 
+// 测试
+function testChange(info) {
+	return {
+		type: TEST_CHANGE,
+		info
+	};
+}
+
 function unread_messageChange(message_count) {
 	return {
 		type: UNREAD_MESSAGE,
 		message_count
 	};
+}
+
+export function changeTest(info) {
+	return testChange(info);
 }
 
 export function staticReduxInfo(uid) {
