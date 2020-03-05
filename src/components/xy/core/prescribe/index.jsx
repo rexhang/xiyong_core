@@ -35,6 +35,8 @@ import Placeholder from '../../common/Placeholder';
 
 import Empty from '../../../../containers/Empty';
 
+import TodayPatientList from "../../../../containers/TodayPatientList";
+
 import API, {$http} from "../../../../api";
 
 import reqwest from 'reqwest';
@@ -518,7 +520,7 @@ class Prescribe extends React.Component {
 				}
 			});
 		},
-		getdiseaserecordlist: (page=1, uid='') => {
+		getdiseaserecordlist: (page=1, uid='', cb=false) => {
 			$http.get(API.getdiseaserecordlist, {
 				pn: page,
 				cn: Prescribe.blPageSize,
@@ -534,6 +536,9 @@ class Prescribe extends React.Component {
 						blList_current_page: res.data.data.medicalRecordList.page.pn,
 						blList_total_page: res.data.data.medicalRecordList.page.tc
 					});
+					if (typeof cb === 'function'){
+						cb(res);
+					}
 				}
 			});
 		},
@@ -1356,6 +1361,30 @@ class Prescribe extends React.Component {
 				balance: data.balance,
 				avatar_pic: data.avatar_pic
 			},
+		});
+	};
+	
+	// 选择点击联动 响应子组件点击事件
+	autoUserClick = (uid) => {
+		this.dataCenter.getdiseaserecordlist(1, uid, (res)=>{
+			if (res.data.code === 200){
+				const userData = res.data.data.userinfo;
+				this.setState({
+					shouldShowSearchBox: false,
+					currentUserName: userData.username,
+					currentUserInfo: {
+						id: userData.id,
+						username: userData.username,
+						sex: userData.sex,
+						age: userData.age,
+						job: userData.job,
+						mobile: userData.mobile,
+						id_num: userData.id_num,
+						balance: userData.balance,
+						avatar_pic: userData.avatar_pic
+					},
+				});
+			}
 		});
 	};
 
@@ -2483,6 +2512,7 @@ class Prescribe extends React.Component {
 
 		return (
 			<div className="Prescribe" id='Prescribe'>
+				<TodayPatientList getParent={()=>this} />
 				<h2 className='title'>门诊就诊系统</h2>
 				<center><Button type='link' onClick={()=>{
 					this.createUserHandler('visible', true);
