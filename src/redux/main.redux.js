@@ -92,7 +92,7 @@ function versionChange(version) {
 	};
 }
 
-// 测试
+// 测试...
 function testChange(info) {
 	return {
 		type: TEST_CHANGE,
