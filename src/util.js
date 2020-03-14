@@ -117,6 +117,14 @@ export class Verification {
 	static email(email){
 		return /^(\w-*\.*)+@(\w-?)+(\.\w{2,})+$/.test(email);
 	}
+	static id_num(id_num){
+		return /^[1-9]\d{7}((0\d)|(1[0-2]))(([0|1|2]\d)|3[0-1])\d{3}$|^[1-9]\d{5}[1-9]\d{3}((0\d)|(1[0-2]))(([0|1|2]\d)|3[0-1])\d{3}([0-9]|X)$/.test(id_num);
+		// 身份证号: values
+		// const province = id_num.substring(0, 2) //省
+		// const city = id_num.substring(0, 4) //市
+		// const area = id_num.substring(0, 6) //区
+		// const sex = id_num.substring(16, 17) //性别
+	}
 }
 
 /*判断对象是否为空*/
