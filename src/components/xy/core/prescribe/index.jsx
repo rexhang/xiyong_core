@@ -420,7 +420,7 @@ class Prescribe extends React.Component {
 			$http.get(API.liliaoList, {
 				name,
 				pn: 1,
-				cn: 20
+				cn: 1000
 			}).then(res=>{
 				if (res.data.code === 200){
 					this.setState({
@@ -1153,8 +1153,11 @@ class Prescribe extends React.Component {
 			});
 		}
 	};
-
+	saveLLLock = false;
 	saveLL = () => {
+		if (this.saveLLLock){
+			return false;
+		}
 	    /*console.log(this.state.ll_count);
 		console.log(this.state.xuewei_list_id);*/
 		// xuewei_list_id = 理疗穴位 array
@@ -1173,7 +1176,9 @@ class Prescribe extends React.Component {
 		if (this.cfEditId !== null) {
 			// 编辑
 			postdata.prescription_id = this.cfEditId;
+			this.saveLLLock = true; // 锁住
 			this.dataCenter.createLL(postdata, ()=>{
+				this.saveLLLock = false; // 解锁
 				// 刷新获取处方列表接口
 				this.dataCenter.getcfList(1, this.state.formQueryDatas.disease_record_id);
 				Modal.success({
@@ -1187,7 +1192,9 @@ class Prescribe extends React.Component {
 			}, 'edit');
 		} else {
 			// 新建
+			this.saveLLLock = true; // 锁住
 			this.dataCenter.createLL(postdata, (code)=>{
+				this.saveLLLock = false; // 解锁
 				// 刷新获取处方列表接口
 				this.dataCenter.getcfList(1, this.state.formQueryDatas.disease_record_id);
 				Modal.success({
@@ -1363,7 +1370,7 @@ class Prescribe extends React.Component {
 			},
 		});
 	};
-	
+
 	// 选择点击联动 响应子组件点击事件
 	autoUserClick = (uid) => {
 		this.dataCenter.getdiseaserecordlist(1, uid, (res)=>{
@@ -1778,8 +1785,11 @@ class Prescribe extends React.Component {
 			cf_info_list
 		});
 	};
-
+	saveCfContentLock = false;
 	saveCfContent = () => {
+		if (this.saveCfContentLock){
+			return false;
+		}
 		const state = this.state;
 		let {drug_group_list_id, cf_info_list, cf_private, me_type, drinkStyle_id, cf_remark, cf_nums, coupon_data_id, thumb, poster, cf_days, drugData2_id} = state;
 		// console.log(cf_info_list);
@@ -1814,7 +1824,9 @@ class Prescribe extends React.Component {
 			if (this.cfEditId !== null) {
 				// 编辑
 				postdata3.prescription_id = this.cfEditId;
+				this.saveCfContentLock = true; // 锁住
 				this.dataCenter.saveCfContent(postdata3, ()=>{
+					this.saveCfContentLock = false; // 解锁
 					// 刷新获取处方列表接口
 					this.dataCenter.getcfList(1, this.state.formQueryDatas.disease_record_id);
 					Modal.success({
@@ -1828,6 +1840,7 @@ class Prescribe extends React.Component {
 				}, 'edit');
 			} else {
 				// 新建
+				this.saveCfContentLock = true; // 锁住
 				this.dataCenter.saveCfContent(postdata3, (code)=>{
 					// 刷新获取处方列表接口
 					this.dataCenter.getcfList(1, this.state.formQueryDatas.disease_record_id);
@@ -1836,6 +1849,7 @@ class Prescribe extends React.Component {
 						content: '处方取货码: 『'+code+'』',
 						okText: '关闭',
 						onOk: () => {
+							this.saveCfContentLock = false; // 解锁
 							this.exitStage2();
 						}
 					});
@@ -1892,7 +1906,9 @@ class Prescribe extends React.Component {
 			if (this.cfEditId !== null) {
 				// 编辑
 				postdata4.prescription_id = this.cfEditId;
+				this.saveCfContentLock = true; // 锁住
 				this.dataCenter.saveCfContent(postdata4, ()=>{
+					this.saveCfContentLock = false; // 解锁
 					// 刷新获取处方列表接口
 					this.dataCenter.getcfList(1, this.state.formQueryDatas.disease_record_id);
 					Modal.success({
@@ -1906,7 +1922,9 @@ class Prescribe extends React.Component {
 				}, 'edit');
 			} else {
 				// 新建
+				this.saveCfContentLock = true; // 锁住
 				this.dataCenter.saveCfContent(postdata4, (code)=>{
+					this.saveCfContentLock = false; // 解锁
 					// 刷新获取处方列表接口
 					this.dataCenter.getcfList(1, this.state.formQueryDatas.disease_record_id);
 					Modal.success({
@@ -1986,7 +2004,9 @@ class Prescribe extends React.Component {
 			if (this.cfEditId !== null) {
 				// 编辑
 				postdata6.prescription_id = this.cfEditId;
+				this.saveCfContentLock = true; // 锁住
 				this.dataCenter.saveCfContent(postdata6, ()=>{
+					this.saveCfContentLock = false; // 解锁
 					// 刷新获取处方列表接口
 					this.dataCenter.getcfList(1, this.state.formQueryDatas.disease_record_id);
 					Modal.success({
@@ -2000,8 +2020,10 @@ class Prescribe extends React.Component {
 				}, 'edit');
 			} else {
 				// 新建
+				this.saveCfContentLock = true; // 锁住
 				this.dataCenter.saveCfContent(postdata6, (code)=>{
 					// 刷新获取处方列表接口
+					this.saveCfContentLock = false; // 解锁
 					this.dataCenter.getcfList(1, this.state.formQueryDatas.disease_record_id);
 					Modal.success({
 						title: '处方开具成功',
@@ -2090,7 +2112,9 @@ class Prescribe extends React.Component {
 		if (this.cfEditId !== null) {
 			// 编辑
 			postdata.prescription_id = this.cfEditId;
+			this.saveCfContentLock = true; // 锁住
 			this.dataCenter.saveCfContent(postdata, ()=>{
+				this.saveCfContentLock = false; // 解锁
 				// 刷新获取处方列表接口
 				this.dataCenter.getcfList(1, this.state.formQueryDatas.disease_record_id);
 				Modal.success({
@@ -2104,7 +2128,9 @@ class Prescribe extends React.Component {
 			}, 'edit');
 		} else {
 			// 新建
+			this.saveCfContentLock = true; // 锁住
 			this.dataCenter.saveCfContent(postdata, (code)=>{
+				this.saveCfContentLock = false; // 解锁
 				// 刷新获取处方列表接口
 				this.dataCenter.getcfList(1, this.state.formQueryDatas.disease_record_id);
 				Modal.success({
