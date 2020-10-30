@@ -296,8 +296,6 @@ class Prescribe extends React.Component {
 		u_id: '',
 		saveCfContent_loading: false,
 		saveLL_loading: false,
-
-    sd: false
 	};
 
 	searchbox = null;
