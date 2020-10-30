@@ -21,6 +21,9 @@
 # ide config
 /.idea
 
+# log
+*.log
+
 # api
 /src/api/*
 
