@@ -293,7 +293,9 @@ class Prescribe extends React.Component {
 		feature: '',
 		u_name: '',
 		u_mobile: '',
-		u_id: ''
+		u_id: '',
+		saveCfContent_loading: false,
+		saveLL_loading: false
 	};
 
 	searchbox = null;
@@ -825,7 +827,13 @@ class Prescribe extends React.Component {
 		},
 		saveCfContent: (postdata, cb, type='create') => {
 			if (type==='create') {
+				this.setState({
+					saveCfContent_loading: true
+				});
 				$http.post(API.prescriptionCreate, postdata).then(res=>{
+					this.setState({
+						saveCfContent_loading: false
+					});
 					if(res.data.code === 200){
 						// 处方开具成功 取货码: res.data.data.code
 						cb(res.data.data.code);
@@ -849,9 +857,19 @@ class Prescribe extends React.Component {
 							}
 						});
 					}
+				}).catch(err=>{
+					this.setState({
+						saveCfContent_loading: false
+					});
 				});
 			} else if (type==='edit') {
+				this.setState({
+					saveCfContent_loading: true
+				});
 				$http.post(API.prescriptionSave, postdata).then(res=>{
+					this.setState({
+						saveCfContent_loading: false
+					});
 					if(res.data.code === 200){
 						// 处方更新成功
 						cb('update_success');
@@ -876,6 +894,10 @@ class Prescribe extends React.Component {
 							}
 						});
 					}
+				}).catch(err=>{
+					this.setState({
+						saveCfContent_loading: false
+					});
 				});
 			}
 		},
@@ -1025,18 +1047,38 @@ class Prescribe extends React.Component {
 		},
 		createLL: (postdata, cb, type='create') => {
 			if (type==='create') {
+				this.setState({
+					saveLL_loading: true
+				});
 				$http.post(API.acupointcreate, postdata).then(res=>{
 					if(res.data.code === 200){
+						this.setState({
+							saveLL_loading: false
+						});
 						// 处方开具成功 取货码: res.data.data.code
 						cb(res.data.data.code);
 					}
+				}).catch(err=>{
+					this.setState({
+						saveLL_loading: false
+					});
 				});
 			} else if (type==='edit') {
+				this.setState({
+					saveLL_loading: true
+				});
 				$http.post(API.acupointcreate, postdata).then(res=>{
 					if(res.data.code === 200){
+						this.setState({
+							saveLL_loading: false
+						});
 						// 处方更新成功
 						cb('update_success');
 					}
+				}).catch(err=>{
+					this.setState({
+						saveLL_loading: false
+					});
 				});
 			}
 		},
@@ -3975,7 +4017,7 @@ class Prescribe extends React.Component {
 														}
 														<Placeholder height={15} />
 														<div className='rex-cf'>
-															<Button className='rex-fl' icon='save' disabled={state.status === '20' || state.status === 20 || state.status === '30' || state.status === 30} onClick={()=>this.saveCfContent()}>{state.status === '20' || state.status === 20?'已支付':state.status === '30' || state.status === 30?'已退款':'保存/修改'}</Button>
+															<Button className='rex-fl' icon='save' disabled={state.status === '20' || state.status === 20 || state.status === '30' || state.status === 30} loading={this.state.saveCfContent_loading} onClick={()=>this.saveCfContent()}>{state.status === '20' || state.status === 20?'已支付':state.status === '30' || state.status === 30?'已退款':'保存/修改'}</Button>
 															{
 																this.cfEditId?
 																	<div className='rex-fl'><Placeholder width={15} /><Button onClick={()=>this.copyCF('copy')} icon='copy'>拷贝此处方</Button></div>:null
@@ -4434,7 +4476,7 @@ class Prescribe extends React.Component {
 														</div>
 														<Placeholder height={15} />
 														<div>
-															<Button className='rex-fl' icon='save' disabled={state.status === '20' || state.status === 20 || state.status === '30' || state.status === 30} onClick={()=>this.saveLL()}>{state.status === '20' || state.status === 20?'已支付':state.status === '30' || state.status === 30?'已退款':'保存/修改'}</Button>
+															<Button className='rex-fl' icon='save' disabled={state.status === '20' || state.status === 20 || state.status === '30' || state.status === 30} loading={this.state.saveLL_loading} onClick={()=>this.saveLL()}>{state.status === '20' || state.status === 20?'已支付':state.status === '30' || state.status === 30?'已退款':'保存/修改'}</Button>
 															{
 																this.cfEditId?
 																	<div className='rex-fl'><Placeholder width={15} /><Button icon='copy' onClick={()=>this.copyCF('copy')}>拷贝此处方</Button></div>:null
