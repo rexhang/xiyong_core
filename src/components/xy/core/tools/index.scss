@@ -1,0 +1,44 @@
+$leftWidth: 8px;
+
+.core-tools{
+	.title{
+		text-align: center;
+	}
+	.core-contents{
+		padding: 0 15px;
+		.templateFlag{
+			display: flex;
+			align-items: center;
+			.keys{
+				float: left;
+				margin-left: $leftWidth;
+				&:first-child{
+					margin-left: 0;
+				}
+			}
+			.values{
+				float: left;
+				width: 200px;
+				margin-left: $leftWidth;
+				border-radius: 2px;
+			}
+		}
+		.table-ctrl{
+			background-color: #fff;
+		}
+		.top-btns{
+			&:after{
+				content: '';
+				display: block;
+				width: 0;
+				height: 0;
+				clear: both;
+			}
+		}
+	}
+
+	.ant-row.ant-form-item{
+		margin-bottom: 0;
+	}
+
+}

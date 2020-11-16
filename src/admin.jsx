@@ -27,6 +27,8 @@ import Welcome from './components/Welcome';
 
 import Prescribe from "./components/xy/core/prescribe";
 
+import { WrappedCoreTools } from "./components/xy/core/tools";
+
 @withRouter
 @connect(
 	state=>state
@@ -45,6 +47,11 @@ class Admin extends React.Component {
 				id: 14,
 				path: '/admin/core/prescribe',
 				component: Prescribe
+			},
+			{
+				id: 15,
+				path: '/admin/core/tools',
+				component: WrappedCoreTools
 			}
 		];
 

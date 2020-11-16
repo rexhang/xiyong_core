@@ -28,8 +28,10 @@ import {
 	Tabs,
 	Spin,
 	Switch,
-	Radio
+	Radio,
 } from 'antd';
+
+import { FormWrapCommonInputs } from "../../common";
 
 import Placeholder from '../../common/Placeholder';
 
@@ -46,6 +48,8 @@ import reqwest from 'reqwest';
 import logjs from 'myloggerjs';
 
 import moment from 'moment';
+
+import { common_template, vip, } from '../../common/template-configs';
 
 const _ = require('lodash');
 
@@ -68,211 +72,8 @@ class Prescribe extends React.Component {
 	static CF_LIST_PageSize = 5;
 
 	static templateInfo = [
-		{
-		  // 类型ID
-			typeId: 1,
-			// 类型名
-			typeName: '普通病例模板',
-			// 患者ID
-			patient_id: undefined,
-			// 患者姓名
-			username: undefined,
-			// 性别  1 男  2 女
-			sex: undefined,
-			// 年龄
-			age: undefined,
-			// 民族
-			national: undefined,
-			// 职业
-			job: undefined,
-			// 联系电话
-			mobile: undefined,
-			// 身份证号码
-			id_num: undefined,
-			// 患者主诉
-			patient_desc: undefined,
-			// 现病史
-			disease_history: undefined,
-			// 既往史
-			disease_ids: undefined,
-			// 家族史
-			disease_family: undefined,
-			// 过敏史
-			allergy: undefined,
-			// 实验室检查
-			inspection_result: undefined,
-			// 中医诊断
-			diagnosis_id: undefined,
-			// 中医证型
-			tcm_ids: undefined,
-			// 治法治则
-			treatment_ids: undefined,
-			// 西医诊断
-			western_diagnosis_ids: undefined,
-			// 医嘱
-			advise: undefined,
-			// 图像资料
-			images: undefined
-		},
-		{
-			// 类型ID
-			typeId: 2,
-			// 类型名
-			typeName: '备育患者病历模板',
-			// 患者ID
-			patient_id: undefined,
-			// 患者姓名
-			username: undefined,
-			// 性别  1 男  2 女
-			sex: undefined,
-			// 年龄
-			age: undefined,
-			// 民族
-			national: undefined,
-			// 职业
-			job: undefined,
-			// 联系电话
-			mobile: undefined,
-			// 身份证号码
-			id_num: undefined,
-			// 患者主诉
-			patient_desc: undefined,
-			// 现病史
-			disease_history: undefined,
-			//婚育情况
-			// 婚后      婚后   年月日
-			marital_after_date: undefined,
-			// 未避孕   年月日
-			marital_pill_date: undefined,
-			//性生活情况   1.性生活正常 2.两地分居性生活少  3.性冷淡 性生活少   4.勃起障碍   5.早泄 6.不射精  7.逆行射精
-			sex_life: undefined,
-			//女孕产情况
-			// 孕    次
-			pregnant_times: undefined,
-			// 产    个
-			bear: undefined,
-			// 流    次
-			abortion: undefined,
-			// 具体说明
-			pregnant_note: undefined,
-			//  是否行试管婴儿术     是  否
-			is_tube_baby: undefined,
-			//  0 成功  1 失败
-			tube_baby_result: undefined,
-			//  具体说明
-			tube_baby_note: undefined,
-			//  是否行人工受精术   是  否
-			is_iui: undefined,
-			//  0 成功  1失败
-			iui_result: undefined,
-			//  具体说明
-			iui_note: undefined,
-			//是否行精子监测      是  否
-			is_sperm_monitor: undefined,
-			// 具体检查时间
-			sperm_check_date: undefined,
-			// 精液量    ml
-			sperm_quantity: undefined,
-			//  精子计数  L
-			sperm_count: undefined,
-			// 精子密度  ML
-			sperm_density: undefined,
-			// 精子活率  %
-			sperm_survival: undefined,
-			// 精子活力a级  %
-			sperm_vitality_a: undefined,
-			// a级+b级     %
-			sperm_vitality_ab: undefined,
-			//精子检查情况   1精子正常    2精子活力低下   3精子活率低   4精子不完全液化   5精子不液化   6无精    7精子畸形率高
-			sperm_check_result: undefined,
-			//病因及诱因
-			causes: undefined,
-			//精神情志方面   1正常  2情绪急躁 3情绪低落  4情绪抑郁 5优思过度 6易激动兴奋 7易紧张
-			spirit: undefined,
-			//饮食嗜好与生活起居方面  1嗜食肥甘厚味  2偏食辛辣  3贪食生冷  4注意保暖  5饮食无节 6喜饮酒  7抽烟  8少动或不欲动  9劳累过度  10熬夜  11久坐
-			dietary_regimen: undefined,
-			//现有情况
-			// 体力  1良好□   2一般□   3易困乏□
-			strength: undefined,
-			// 腰部  1正常□   2腰酸□   3腰痛□   4腰凉□  5阴囊潮溼
-			waist: undefined,
-			//诊疗情况
-			//  _年月日  1
-			diagnoses_date: undefined,
-			// 在_医院行
-			hospital_name: undefined,
-			// 做_检查
-			inspection: undefined,
-			// 检查结果
-			inspection_result: undefined,
-			// 复印件
-			copies_images: undefined,
-			// 行  治疗
-			therapy: undefined,
-			// 治疗后情况
-			therapy_result: undefined,
-			//实验室检查  睾丸发育不良□   精索静脉曲张□   生殖道支原体感染□   生殖道衣原体感染□   前列腺炎   精囊炎□   阴囊湿疹□   染色体异常□   高泌乳素血症□   肾上腺皮质增生症□   附睾炎   睾丸炎□   尿道炎□   输精管梗阻
-			lab_check: undefined,
-			//  其他男科疾病
-			rest_disease: undefined,
-			//一般情况
-			// 饮食:    饮食正常□   食欲减退□   飢不欲食□   饮食不规律
-			dietary: undefined,
-			// 饮水情况:   口不渴□   口渴多饮□   渴不欲饮□
-			drink: undefined,
-			// 口    味:   口味正常□   口苦□   口甜□   口黏腻□   口涩□
-			taste: undefined,
-			// 睡    眠:   睡眠正常□   睡眠差□   入睡困难□   多梦□   早醒□   醒后不易入睡□   睡□
-			sleep: undefined,
-			// 大    便:   大便正常□   便秘□   腹泻□   完谷不化□
-			bowels: undefined,
-			// 小    便:  小便正常□   小便灼热感□   尿频□   尿急□   尿痛□   尿等待□   小便黄□ 小便失禁□   尿后滴白□
-			pee: undefined,
-			//一般体格检查
-			// 体型：体型正常□   偏瘦□   偏胖□   肥胖□
-			somatotype: undefined,
-			// 面色：面色微黄□   面色萎黄□   面色红润□   面色暗有瘀斑□   面色晄白□   面色青黑□  面色偏红□   满面通红□   两颧发红□   面色淡白□
-			complexion: undefined,
-			// 神态：精神萎靡□   少气懒言□   精神良好□
-			air: undefined,
-			// 舌诊情况：淡红舌薄白苔□   舌质紫暗有瘀斑□   舌暗苔白□   舌红苔黄腻□   舌淡苔白□  舌质淡□   地图舌□   齿痕舌□   裂纹舌□   舌红绛□   淡白舌□   红点舌□
-			tongue: undefined,
-			// 其他舌象
-			rest_tongue: undefined,
-			//脉诊情况  脉弦□   脉弱□   脉滑□   脉数□   脉细□   脉浮滑□   脉沉紧□   脉弦数□ 脉细数□   脉滑数□   脉细无力□   脉沉细□
-			pulse: undefined,
-			// 其他脉象
-			rest_pulse: undefined,
-			//触按诊情况：
-			// 按肌肤
-			//肌肤温度：温热□  寒凉□  皮肤发烫□  初按不觉热，重按筋骨方热□  初按觉热，重按不觉热
-			skin_temperature: undefined,
-			// 肌肤溼度  皮肤溼润□  皮肤汗出、粘腻□  皮肤光滑□  皮肤干燥□  皮肤粗糙□  肌肤甲错□
-			skin_humidity: undefined,
-			// 触按肿胀：无肿胀□  按之陷下、举手即起□  按之陷下、举手久不起□
-			skin_swollen: undefined,
-			// 有无疮疡：  无□  有□
-			is_boils: undefined,
-			//按手足
-			// 手足部温度、溼度：手足温热□  手寒凉□  手心发热□   手心出汗□  足寒凉□   足心发热□   足心出汗□
-			extremities: undefined,
-			//按下肢   下肢温热□   下肢寒凉□
-			legs: undefined,
-			//既往史：  无□  有□
-			// 高血压□ 高血脂□ 乳腺增生□ 乳腺结节□ 乳腺纤维瘤□ 乙肝大三阳□ 乙肝小三阳□ 脂肪肝□
-			// 其他：
-			disease_ids: undefined,
-			// 中医诊断
-			diagnosis_id: undefined,
-			// 中医证型
-			tcm_ids: undefined,
-			// 治法治则
-			treatment_ids: undefined,
-			// 西医诊断
-			western_diagnosis_ids: undefined,
-			// 医嘱  （1）饮食清淡，忌食生冷油腻刺激性食物。（2）保持心情舒畅（3）不熬夜，早睡觉。（4）适当运动。
-			advise: undefined,
-		}
+		{...common_template},
+		{...vip},
 	];
 
 	SCALE = 1;
@@ -306,27 +107,46 @@ class Prescribe extends React.Component {
 		window.addEventListener('resize', this.handleWinResize, false);
 	}
 
-	handleWinResize = () => {
-		this.domWidth = document.getElementById('Prescribe').offsetWidth;
-		this.domHeight = document.getElementById('Prescribe').offsetHeight;
-		// console.log(this.domWidth);
-	};
-
-	handleOtherClick = (e) => {
-		// console.log(e.target.getAttribute('class'));
-		const CLASSNAME = e.target.getAttribute('class');
-		// 简单的判断几个可能点击的空白区域
-		if(CLASSNAME === 'content' || CLASSNAME === 'main' || CLASSNAME === 'Prescribe' || CLASSNAME === 'main-box' || CLASSNAME === 'infomations'){
+	actions = {
+	  handleTemplateSelected: selId => {
+	    // 模板切换响应
 			this.setState({
-				shouldShowSearchBox: false
+				templateId: selId
 			});
-		}
-	};
+			const datas = Prescribe.templateInfo;
+			const handleData = datas.find(v=>v.templateId === selId);
+			if (handleData) {
+			  // 清空表单
+				// resetFields => 重置所有组件为 initialValue
+				this.FormWrapCommonInputs && this.FormWrapCommonInputs.props.form.resetFields();
+			  const { templateId, templateName, templateAliasName, ...others } = handleData;
+			  // 分步组装数据
+				this.setState({
+					loadedTemplateInfo: {
+						head: {
+							templateId,
+							templateName,
+							templateAliasName
+						},
+						content: {
+							...others
+						}
+					}
+				});
+			} else {
+			  // 选择了清除值的话: 就...
+				console.log('clear template info...');
+			}
+		},
 
-	componentWillUnmount() {
-		document.removeEventListener('click', this.handleOtherClick, false);
-		window.removeEventListener('resize', this.handleWinResize, false);
 	}
+
+  state2 = {
+  	loadedTemplateInfo: {
+  	  head: {},
+  		content: {}
+  	},
+  }
 
 	state = {
 		user_list: [],
@@ -506,10 +326,35 @@ class Prescribe extends React.Component {
 		u_id: '',
 		saveCfContent_loading: false,
 		saveLL_loading: false,
-		typeId: 1,
+		templateId: undefined,
+		...this.state2,
 	};
 
 	searchbox = null;
+
+  FormWrapCommonInputs = null;
+
+  handleWinResize = () => {
+  	this.domWidth = document.getElementById('Prescribe').offsetWidth;
+  	this.domHeight = document.getElementById('Prescribe').offsetHeight;
+  	// console.log(this.domWidth);
+  };
+
+  handleOtherClick = (e) => {
+  	// console.log(e.target.getAttribute('class'));
+  	const CLASSNAME = e.target.getAttribute('class');
+  	// 简单的判断几个可能点击的空白区域
+  	if(CLASSNAME === 'content' || CLASSNAME === 'main' || CLASSNAME === 'Prescribe' || CLASSNAME === 'main-box' || CLASSNAME === 'infomations'){
+  		this.setState({
+  			shouldShowSearchBox: false
+  		});
+  	}
+  };
+
+  componentWillUnmount() {
+  	document.removeEventListener('click', this.handleOtherClick, false);
+  	window.removeEventListener('resize', this.handleWinResize, false);
+  }
 
 	initData = () => {
 	    // 初始化
@@ -2830,7 +2675,7 @@ class Prescribe extends React.Component {
 												});
 											}} style={{border: '1px solid #ddd8d8', borderRadius: '4px', width: 'min-content', height: 120, padding: '4px', cursor: `url(${require('./assets/pointer_mouse.cur')}), pointer`}}><img src={avatar_pic} height={'100%'} alt=""/></div></Descriptions.Item>
 											<Descriptions.Item label="特征备注信息">
-												<Input.TextArea placeholder='请输入特征备注信息' value={state.feature} autosize={{ minRows: 6, maxRows: 6 }} style={{width: 300,marginRight: 5}}
+												<Input.TextArea placeholder='请输入特征备注信息' value={state.feature} autoSize={{ minRows: 6, maxRows: 6 }} style={{width: 300,marginRight: 5}}
 													onChange={v=>{
 														this.setState({
 															feature: v.target.value
@@ -3019,7 +2864,24 @@ class Prescribe extends React.Component {
 
 									{/*新增病历模板选择*/}
 									<div className="tempArea">
-										<Opt placeholder={'请选择病历模板'} value={this.state.typeId} options={Prescribe.templateInfo} onChange={typeId=>this.setState({typeId})} />
+										<Opt placeholder={'请选择病历模板'} value={this.state.templateId} options={Prescribe.templateInfo} onChange={this.actions.handleTemplateSelected} />
+                    &nbsp;&nbsp;&nbsp;&nbsp;
+										<Button icon={'rocket'} onClick={()=>{
+											console.log('全部模板数据信息...');
+											console.log(Prescribe.templateInfo);
+											console.log('当前已装载的模板数据信息...');
+											console.log(this.state.loadedTemplateInfo);
+											this.FormWrapCommonInputs && this.FormWrapCommonInputs.actions.submit();
+										}}>Lunch Button</Button>
+									</div>
+
+									<div className="DivFieldset1 render-template">
+										<div className="DivFieldset1_title">录入内容</div>
+										<div className="DivFieldset1_content">
+											<div className="rex-fctns">
+												<FormWrapCommonInputs style={{width: 410}} templatedata={state.loadedTemplateInfo} onRef={FormWrapCommonInputs=>this.FormWrapCommonInputs=FormWrapCommonInputs} />
+											</div>
+										</div>
 									</div>
 
 									<div className="DivFieldset1">

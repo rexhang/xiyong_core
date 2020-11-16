@@ -66,7 +66,7 @@ class TodayPatientList extends React.Component {
 							>
 								<List.Item.Meta
 									avatar={<div style={{display: "block", color: "#666", width: "34px", fontSize: "12px", textAlign: "left"}}>No.{TodayPatientList.PAGE_LIMIT * state.currentPAGE - TodayPatientList.PAGE_LIMIT + _index + 1}</div>}
-									title={<a href="javascript:;">{item.username}</a>}
+									title={<Button type={'link'} size={'small'}>{item.username}</Button>}
 									description={item.mobile}
 								/>
 							</List.Item>

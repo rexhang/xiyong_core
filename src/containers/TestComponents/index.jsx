@@ -44,6 +44,7 @@ class TestComponents extends React.Component{
 						return (
 							<div className='TestComponents'>
 								<h1 data-info={JSON.stringify({width: this.props.width, height: this.props.height, show: this.props.show})}>TestComponents</h1>
+								<a href="#/admin/core/tools">Go</a>
 							</div>
 						);
 					}
