@@ -41,11 +41,11 @@ class Router extends React.Component {
 				path: '/admin',
 				component: Admin
 			},
-	        {
-		        id: 2,
-		        path: '/login',
-		        component: Login
-	        }
+			{
+				id: 2,
+				path: '/login',
+				component: Login
+			}
 		];
 		return (
 			<div className="Router">

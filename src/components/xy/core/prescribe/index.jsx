@@ -28,14 +28,18 @@ import {
 	Tabs,
 	Spin,
 	Switch,
-	Radio
+	Radio,
 } from 'antd';
+
+import { FormWrapCommonInputs } from "../../common";
 
 import Placeholder from '../../common/Placeholder';
 
 import Empty from '../../../../containers/Empty';
 
 import TodayPatientList from "../../../../containers/TodayPatientList";
+
+import { Opt } from "../../common";
 
 import API, {$http} from "../../../../api";
 
@@ -44,6 +48,8 @@ import reqwest from 'reqwest';
 import logjs from 'myloggerjs';
 
 import moment from 'moment';
+
+import { common_template, vip, } from '../../common/template-configs';
 
 const _ = require('lodash');
 
@@ -64,6 +70,11 @@ class Prescribe extends React.Component {
 	static dateformat = 'YYYY-MM-DD';
 
 	static CF_LIST_PageSize = 5;
+
+	static templateInfo = [
+		{...common_template},
+		{...vip},
+	];
 
 	SCALE = 1;
 
@@ -96,27 +107,46 @@ class Prescribe extends React.Component {
 		window.addEventListener('resize', this.handleWinResize, false);
 	}
 
-	handleWinResize = () => {
-		this.domWidth = document.getElementById('Prescribe').offsetWidth;
-		this.domHeight = document.getElementById('Prescribe').offsetHeight;
-		// console.log(this.domWidth);
-	};
-
-	handleOtherClick = (e) => {
-		// console.log(e.target.getAttribute('class'));
-		const CLASSNAME = e.target.getAttribute('class');
-		// 简单的判断几个可能点击的空白区域
-		if(CLASSNAME === 'content' || CLASSNAME === 'main' || CLASSNAME === 'Prescribe' || CLASSNAME === 'main-box' || CLASSNAME === 'infomations'){
+	actions = {
+	  handleTemplateSelected: selId => {
+	    // 模板切换响应
 			this.setState({
-				shouldShowSearchBox: false
+				templateId: selId
 			});
-		}
-	};
+			const datas = Prescribe.templateInfo;
+			const handleData = datas.find(v=>v.templateId === selId);
+			if (handleData) {
+			  // 清空表单
+				// resetFields => 重置所有组件为 initialValue
+				this.FormWrapCommonInputs && this.FormWrapCommonInputs.props.form.resetFields();
+			  const { templateId, templateName, templateAliasName, ...others } = handleData;
+			  // 分步组装数据
+				this.setState({
+					loadedTemplateInfo: {
+						head: {
+							templateId,
+							templateName,
+							templateAliasName
+						},
+						content: {
+							...others
+						}
+					}
+				});
+			} else {
+			  // 选择了清除值的话: 就...
+				console.log('clear template info...');
+			}
+		},
 
-	componentWillUnmount() {
-		document.removeEventListener('click', this.handleOtherClick, false);
-		window.removeEventListener('resize', this.handleWinResize, false);
 	}
+
+  state2 = {
+  	loadedTemplateInfo: {
+  	  head: {},
+  		content: {}
+  	},
+  }
 
 	state = {
 		user_list: [],
@@ -296,9 +326,35 @@ class Prescribe extends React.Component {
 		u_id: '',
 		saveCfContent_loading: false,
 		saveLL_loading: false,
+		templateId: undefined,
+		...this.state2,
 	};
 
 	searchbox = null;
+
+  FormWrapCommonInputs = null;
+
+  handleWinResize = () => {
+  	this.domWidth = document.getElementById('Prescribe').offsetWidth;
+  	this.domHeight = document.getElementById('Prescribe').offsetHeight;
+  	// console.log(this.domWidth);
+  };
+
+  handleOtherClick = (e) => {
+  	// console.log(e.target.getAttribute('class'));
+  	const CLASSNAME = e.target.getAttribute('class');
+  	// 简单的判断几个可能点击的空白区域
+  	if(CLASSNAME === 'content' || CLASSNAME === 'main' || CLASSNAME === 'Prescribe' || CLASSNAME === 'main-box' || CLASSNAME === 'infomations'){
+  		this.setState({
+  			shouldShowSearchBox: false
+  		});
+  	}
+  };
+
+  componentWillUnmount() {
+  	document.removeEventListener('click', this.handleOtherClick, false);
+  	window.removeEventListener('resize', this.handleWinResize, false);
+  }
 
 	initData = () => {
 	    // 初始化
@@ -2619,7 +2675,7 @@ class Prescribe extends React.Component {
 												});
 											}} style={{border: '1px solid #ddd8d8', borderRadius: '4px', width: 'min-content', height: 120, padding: '4px', cursor: `url(${require('./assets/pointer_mouse.cur')}), pointer`}}><img src={avatar_pic} height={'100%'} alt=""/></div></Descriptions.Item>
 											<Descriptions.Item label="特征备注信息">
-												<Input.TextArea placeholder='请输入特征备注信息' value={state.feature} autosize={{ minRows: 6, maxRows: 6 }} style={{width: 300,marginRight: 5}}
+												<Input.TextArea placeholder='请输入特征备注信息' value={state.feature} autoSize={{ minRows: 6, maxRows: 6 }} style={{width: 300,marginRight: 5}}
 													onChange={v=>{
 														this.setState({
 															feature: v.target.value
@@ -2805,6 +2861,29 @@ class Prescribe extends React.Component {
 												</div>
 											</div>:null
 									}
+
+									{/*新增病历模板选择*/}
+									<div className="tempArea">
+										<Opt placeholder={'请选择病历模板'} value={this.state.templateId} options={Prescribe.templateInfo} onChange={this.actions.handleTemplateSelected} />
+                    &nbsp;&nbsp;&nbsp;&nbsp;
+										<Button icon={'rocket'} onClick={()=>{
+											console.log('全部模板数据信息...');
+											console.log(Prescribe.templateInfo);
+											console.log('当前已装载的模板数据信息...');
+											console.log(this.state.loadedTemplateInfo);
+											this.FormWrapCommonInputs && this.FormWrapCommonInputs.actions.submit();
+										}}>Lunch Button</Button>
+									</div>
+
+									<div className="DivFieldset1 render-template">
+										<div className="DivFieldset1_title">录入内容</div>
+										<div className="DivFieldset1_content">
+											<div className="rex-fctns">
+												<FormWrapCommonInputs style={{width: 410}} templatedata={state.loadedTemplateInfo} onRef={FormWrapCommonInputs=>this.FormWrapCommonInputs=FormWrapCommonInputs} />
+											</div>
+										</div>
+									</div>
+
 									<div className="DivFieldset1">
 										<div className="DivFieldset1_title">基本信息</div>
 										<div className="DivFieldset1_content">

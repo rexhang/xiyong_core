@@ -7,7 +7,7 @@ class Footer extends React.PureComponent {
 		return (
 			<div className="Footer rex-text-center">
 				{/*版权信息*/}
-				Copyright© 2019 power by <a href="//">rexhang</a>
+				Copyright© 2020 power by <a href="//">rexhang</a>
 			</div>
 		);
 	}
