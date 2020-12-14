@@ -252,6 +252,7 @@ module.exports = {
 			'@src': path.resolve(__dirname, paths.appSrc),
 			'@comp': path.resolve(__dirname, paths.appSrc + '/components'),
 			'@api': path.resolve(__dirname, paths.appSrc + '/api'),
+			'->xy': path.resolve(__dirname, paths.appSrc + '/components/xy'),
 			'@rexhanglogo': path.resolve(__dirname, paths.appSrc + '/img/rexhang.png'),
 		},
 		plugins: [

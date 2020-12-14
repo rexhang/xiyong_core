@@ -17,7 +17,7 @@ import NavLeft from './components/NavLeft';
 
 import {Route, Switch, Redirect, withRouter} from "react-router-dom";
 
-import Oauth from './components/xy/common/oauth';
+import Oauth from '->xy/common/oauth';
 
 import {connect} from 'react-redux';
 
@@ -25,9 +25,11 @@ import {connect} from 'react-redux';
 
 import Welcome from './components/Welcome';
 
-import Prescribe from "./components/xy/core/prescribe";
+import Prescribe from "->xy/core/prescribe";
 
-import { WrappedCoreTools } from "./components/xy/core/tools";
+import MedicalRecords from '->xy/core/medical-records';
+
+import { WrappedCoreTools } from "->xy/core/tools";
 
 @withRouter
 @connect(
@@ -52,6 +54,11 @@ class Admin extends React.Component {
 				id: 15,
 				path: '/admin/core/tools',
 				component: WrappedCoreTools
+			},
+			{
+				id: 16,
+				path: '/admin/core/medical-records/:mode',
+				component: MedicalRecords
 			}
 		];
 
@@ -80,7 +87,7 @@ class Admin extends React.Component {
 							></Route>
 							{
 								routerConfig.map(v=>
-									<Route exact key={v.id} path={v.path} component={v.component}></Route>
+									<Route exact key={v.id} path={v.path} render={routerProps=><v.component {...routerProps} {...{currentRouteConfig: v, baseUrl: '/admin/core'}} />}></Route>
 								)
 							}
 						</Switch>

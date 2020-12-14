@@ -59,7 +59,7 @@ class Router extends React.Component {
 							            <Route exact path="/" component={Admin} />
 							            {
 								            routerConfig.map(v=>
-									            <Route key={v.id} path={v.path} component={v.component} />
+									            <Route key={v.id} path={v.path} render={routerProps=><v.component {...routerProps} {...{currentRouteConfig: v, baseUrl: '/admin/core'}} />} />
 								            )
 							            }
 						            </Switch>

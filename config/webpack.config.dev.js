@@ -177,6 +177,7 @@ module.exports = {
 			'@src': path.resolve(__dirname, paths.appSrc),
 			'@comp': path.resolve(__dirname, paths.appSrc + '/components'),
 			'@api': path.resolve(__dirname, paths.appSrc + '/api'),
+			'->xy': path.resolve(__dirname, paths.appSrc + '/components/xy'),
 		},
 		plugins: [
 			// Adds support for installing with Plug'n'Play, leading to faster installs and adding

@@ -992,10 +992,10 @@ class Prescribe extends React.Component {
 			// 	message.warn('请选择治法治则');
 			// 	return false;
 			// }
-			if (diagnosis_id.length===0) {
-				message.warn('请选择中医诊断');
-				return false;
-			}
+			// if (diagnosis_id.length===0) {
+			// 	message.warn('请选择中医诊断');
+			// 	return false;
+			// }
 			// if (!tcm_id) {
 			// 	message.warn('请选择中医证型');
 			// 	return false;
@@ -1014,7 +1014,6 @@ class Prescribe extends React.Component {
 				patient_desc: patient_desc?patient_desc:'',
 				disease_history: disease_history?disease_history:'',
 				inspection_result: inspection_result?inspection_result:'',
-				diagnosis_ids: diagnosis_id.join(','),
 				advise: advise?advise:'',
 				disease_past: disease_past?disease_past:'',
 				disease_family: disease_family?disease_family:'',
@@ -1023,6 +1022,12 @@ class Prescribe extends React.Component {
 				western_diagnosis_ids: western_diagnosis_id.length>0?western_diagnosis_id.join(','):"",
 				drug_reaction: drug_reaction?drug_reaction:''
 			};
+
+			// 中医诊断改为非必填
+			if (diagnosis_id.length){
+				postObject.diagnosis_ids = diagnosis_id.join(',');
+			}
+
 			// 选填字段
 			if (this.state.fileList.length>0) {
 				let _files = [];
