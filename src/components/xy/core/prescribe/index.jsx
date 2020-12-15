@@ -3514,7 +3514,7 @@ class Prescribe extends React.Component {
 																allowClear
 																showSearch={true}
 																value={state.drug_group_list_id}
-																placeholder={'选择成药'}
+																placeholder={'选择湯劑'}
 																optionFilterProp='label'
 																style={{ width: 160, textIndent: 0, marginLeft: 12 }}
 																onChange={(v)=>this.handleDrugGroupChange(v)}
@@ -3523,8 +3523,10 @@ class Prescribe extends React.Component {
 																	state.drug_group_list.map(v=>{
 																		// 拼 音 码 -> GetJP || 拼音全码 -> GetQP || 混 拼 码 -> GetHP
 																		const hunpinCode= window.Pinyin.GetJP(v.name);
+																		let { letters = [] } = v;
+																		letters = letters?.length ? letters.join('/') : hunpinCode;
 																		return(
-																			<Option key={v.id} value={v.id} label={hunpinCode}>{v.name}</Option>
+																			<Option key={v.id} value={v.id} label={letters}>{v.name}</Option>
 																		);
 																	})
 																}
@@ -3537,7 +3539,7 @@ class Prescribe extends React.Component {
 																allowClear
 																showSearch={true}
 																value={state.drugData2_id}
-																placeholder={'选择成品药'}
+																placeholder={'选择丸藥'}
 																optionFilterProp='label'
 																style={{ width: 160, textIndent: 0, marginLeft: 12 }}
 																onChange={(v)=>this.handleDrugGroup2Change(v)}
@@ -3546,8 +3548,10 @@ class Prescribe extends React.Component {
 																	state.drugData2.map(v=>{
 																		// 拼 音 码 -> GetJP || 拼音全码 -> GetQP || 混 拼 码 -> GetHP
 																		const hunpinCode= window.Pinyin.GetJP(v.name);
+																		let { letters = [] } = v;
+																		letters = letters?.length ? letters.join('/') : hunpinCode;
 																		return(
-																			<Option key={v.id} value={v.id} label={hunpinCode}>{v.name}({v.unit_name})</Option>
+																			<Option key={v.id} value={v.id} label={letters}>{v.name}({v.unit_name})</Option>
 																		);
 																	})
 																}
@@ -3581,7 +3585,7 @@ class Prescribe extends React.Component {
 																					if(!val){
 																						return false;
 																					}
-																					console.warn(state.drug_list);
+																					// console.warn(state.drug_list);
 																					let _price = state.drug_list.find(_v=>_v.id===val).price;
 																					_price = _price * 1 / 1000;
 																					let _associate_weight = state.drug_list.find(_v=>_v.id===val).auto_weight;
