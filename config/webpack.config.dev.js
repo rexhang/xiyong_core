@@ -178,6 +178,8 @@ module.exports = {
 			'@comp': path.resolve(__dirname, paths.appSrc + '/components'),
 			'@api': path.resolve(__dirname, paths.appSrc + '/api'),
 			'->xy': path.resolve(__dirname, paths.appSrc + '/components/xy'),
+			'@rexhanglogo': path.resolve(__dirname, paths.appSrc + '/img/rexhang.png'),
+			'->common': path.resolve(__dirname, paths.appSrc + '/components/common'),
 		},
 		plugins: [
 			// Adds support for installing with Plug'n'Play, leading to faster installs and adding
@@ -206,21 +208,21 @@ module.exports = {
 
 			// First, run the linter.
 			// It's important to do this before Babel processes the JS.
-			{
-				test: /\.(js|mjs|jsx)$/,
-				enforce: 'pre',
-				use: [
-					{
-						options: {
-							formatter: require.resolve('react-dev-utils/eslintFormatter'),
-							eslintPath: require.resolve('eslint'),
+			// {
+			// 	test: /\.(js|mjs|jsx)$/,
+			// 	enforce: 'pre',
+			// 	use: [
+			// 		{
+			// 			options: {
+			// 				formatter: require.resolve('react-dev-utils/eslintFormatter'),
+			// 				eslintPath: require.resolve('eslint'),
 
-						},
-						loader: require.resolve('eslint-loader'),
-					},
-				],
-				include: paths.appSrc,
-			},
+			// 			},
+			// 			loader: require.resolve('eslint-loader'),
+			// 		},
+			// 	],
+			// 	include: paths.appSrc,
+			// },
 			{
 				// "oneOf" will traverse all following loaders until one will
 				// match the requirements. When no loader matches it will fall

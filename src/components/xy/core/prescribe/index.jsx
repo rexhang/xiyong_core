@@ -51,6 +51,8 @@ import moment from 'moment';
 
 import { common_template, vip, } from '../../common/template-configs';
 
+import { debounce } from '->common';
+
 const _ = require('lodash');
 
 const { confirm } = Modal;
@@ -99,12 +101,16 @@ class Prescribe extends React.Component {
 
 	domHeight = 1000;
 
+	debounceSearch = null;
+
 	componentDidMount() {
 		this.initData();
 		this.domWidth = document.getElementById('Prescribe').offsetWidth;
 		this.domHeight = document.getElementById('Prescribe').offsetHeight;
 		document.addEventListener('click', this.handleOtherClick, false);
 		window.addEventListener('resize', this.handleWinResize, false);
+
+		this.debounceSearch = debounce(this.dataCenter.getPatients, 500);
 	}
 
 	actions = {
@@ -1438,10 +1444,10 @@ class Prescribe extends React.Component {
 				shouldShowSearchBox: true
 			});
 		}
-		this.dataCenter.getPatients(val);
 		this.setState({
 			currentUserName: val
 		});
+		!!this.debounceSearch && this.debounceSearch(val);
 	};
 
 	handleUserSearchFor = (val) => {
