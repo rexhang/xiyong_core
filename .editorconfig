@@ -1,0 +1,23 @@
+# 这是根文件 不用继续查找
+root = true
+# 对所有文件生效
+[*]
+# utf-8编码
+charset = utf-8
+# 空格形式缩进风格
+indent_style = space
+# 缩进2个单位的空格
+indent_size = 2
+# tab单位大小
+tab_width = 2
+# 使用单引号
+quote_type = single
+# save时是否在结尾添加一个新行
+insert_final_newline = false
+# save时是否移除每行末尾的空格字符
+trim_trailing_whitespace = true
+
+[*.{json, yml}]
+indent_style = space
+indent_size = 2
+tab_width = 2
