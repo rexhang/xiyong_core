@@ -3245,7 +3245,7 @@ class Prescribe extends React.Component {
 							</div>
 						</div>*/}
             <Placeholder height={30} />
-            <div className="user-infomations">
+            <div className="user-infomations" style={{position: 'sticky', left: 0, top: 0, zIndex: 999}}>
               <div className="userinfo">
                 <Descriptions
                   title="患者资料"
@@ -4491,7 +4491,7 @@ class Prescribe extends React.Component {
               visible={this.state.stage2}
             >
               <div className="cf-content">
-                <div className="user-infomations">
+                <div className="user-infomations" style={{position: 'sticky', left: 0, top: 0, zIndex: 999}}>
                   {/*患者资料*/}
                   <div className="userinfo">
                     <Descriptions
